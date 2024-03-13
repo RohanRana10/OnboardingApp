@@ -16,6 +16,7 @@ import { TextInput } from 'react-native-paper';
 import { Dropdown } from 'react-native-element-dropdown';
 import DownloadPDFButton from '../components/DownloadButton';
 import Form from '../components/Form';
+import FormHeader from '../components/FormHeader';
 
 
 export default function Dashboard({ navigation }) {
@@ -605,6 +606,7 @@ export default function Dashboard({ navigation }) {
     const [financialFormFields, setFinancialFormFields] = useState(formFields?.bankDetails ? formFields?.bankDetails : [])
     const [step, setStep] = useState(1);
     const [isUploading, setIsUploading] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [isFormSubmitting, setIsFormSubmitting] = useState(false);
 
     //**** Dynamic form requirements
@@ -620,18 +622,23 @@ export default function Dashboard({ navigation }) {
     const handlePersonalInfoTextChange = (text, field) => {
         setPersonalInfoForm({ ...personalInfoForm, [field]: text });
     }
+
     const handleEducationalInfoTextChange = (text, field) => {
         setEducationalInfoFormData({ ...educationalInfoFormData, [field]: text });
     }
+
     const handlePanInfoTextChange = (text, field) => {
         setPanInfoData({ ...panInfoData, [field]: text });
     }
+    
     const handleAadharInfoTextChange = (text, field) => {
         setAadharInfoData({ ...aadharInfoData, [field]: text });
     }
+
     const handleAgreementInfoTextChange = (text, field) => {
         setAgreementInfoData({ ...agreementInfoData, [field]: text });
     }
+
     const handleFinancialInfoTextChange = (text, field) => {
         setFinancialInfoData({ ...financialInfoData, [field]: text });
     }
@@ -639,18 +646,23 @@ export default function Dashboard({ navigation }) {
     const handlePersonalInfoDropdown = (selection, field) => {
         setPersonalInfoForm({ ...personalInfoForm, [field]: selection });
     }
+
     const handleEducationalInfoDropdown = (selection, field) => {
         setPersonalInfoForm({ ...educationalInfoFormData, [field]: selection });
     }
+
     const handlePanInfoDropdown = (selection, field) => {
         setPanInfoData({ ...panInfoData, [field]: selection });
     }
+
     const handleAadharInfoDropdown = (selection, field) => {
         setAadharInfoData({ ...aadharInfoData, [field]: selection });
     }
+
     const handleAgreementInfoDropdown = (selection, field) => {
         setAgreementInfoData({ ...agreementInfoData, [field]: selection });
     }
+    
     const handleFinancialInfoDropdown = (selection, field) => {
         setFinancialInfoData({ ...financialInfoData, [field]: selection });
     }
@@ -738,6 +750,7 @@ export default function Dashboard({ navigation }) {
 
     const submitEducationalInfo = () => {
         console.log("Educational info submitted!");
+        setIsFormSubmitting(true);
         if (ValidateForm(educationalFormFields, educationalInfoFormData)) {
             let url = `${BASE_URL}/update-education`
             // console.log("Educational Data:", educationalInfoFormData);
@@ -762,18 +775,22 @@ export default function Dashboard({ navigation }) {
             axios.request(config)
                 .then((response) => {
                     if (response.data.status.statusCode === 1) {
+                        setIsFormSubmitting(false);
                         fetchUserDashboard();
                         Alert.alert('Success', 'Educational Information updated');
                         setStep((prev) => prev + 1);
                     }
                     else {
+                        setIsFormSubmitting(false);
                         Alert.alert('Error', 'Please try again');
                     }
                 })
                 .catch((error) => {
+                    setIsFormSubmitting(false);
                     console.log(error);
                 });
         } else {
+            setIsFormSubmitting(false);
             console.log("Check Alert Message");
         }
 
@@ -781,6 +798,7 @@ export default function Dashboard({ navigation }) {
 
     const submitPanInfo = () => {
         console.log("PAN info submitted!");
+        setIsFormSubmitting(true);
         if (ValidateForm(panFormFields, panInfoData)) {
             let url = `${BASE_URL}/save-document`;
             let data = JSON.stringify({
@@ -803,21 +821,25 @@ export default function Dashboard({ navigation }) {
                 .then((response) => {
                     // console.log(JSON.stringify(response.data));
                     if (response.data.status.statusCode === 1) {
+                        setIsFormSubmitting(false);
                         fetchUserDashboard();
                         Alert.alert('Success', 'Pan information updated');
                         setStep((prev) => prev + 1);
                     }
                     else {
+                        setIsFormSubmitting(false);
                         Alert.alert('Error', 'Please try again');
                     }
                 })
                 .catch((error) => {
                     console.log(error);
+                    setIsFormSubmitting(false);
                     Alert.alert('Error', 'Please try again');
                 });
             // console.log("PAN Data:", panInfoData);
 
         } else {
+            setIsFormSubmitting(false);
             console.log("Check Alert Message");
         }
     }
@@ -833,6 +855,7 @@ export default function Dashboard({ navigation }) {
 
     const submitAadharInfo = () => {
         console.log("Aadhar info submitted!");
+        setIsFormSubmitting(true);
         if (ValidateForm(aadharFormFields, aadharInfoData)) {
             // console.log("Aadhar Data:", aadharInfoData);
             let url = `${BASE_URL}/save-document`;
@@ -856,25 +879,31 @@ export default function Dashboard({ navigation }) {
                 .then((response) => {
                     // console.log(JSON.stringify(response.data));
                     if (response.data.status.statusCode === 1) {
+                        setIsFormSubmitting(false);
                         fetchUserDashboard();
                         Alert.alert('Success', 'Aadhar Information updated');
                         setStep((prev) => prev + 1);
                     }
                     else {
+                        setIsFormSubmitting(false);
                         Alert.alert('Error', 'Please try again');
                     }
                 })
                 .catch((error) => {
                     console.log(error);
+                    setIsFormSubmitting(false);
                     Alert.alert('Error', 'Please try again');
                 });
             // setStep(step + 1);
         } else {
+            setIsFormSubmitting(false);
             console.log("Check Alert Message");
         }
     }
+
     const submitAgreementInfo = () => {
         console.log("Agreement info submitted!");
+        setIsFormSubmitting(true);
         if (ValidateForm(agreementFormFields, agreementInfoData)) {
             // console.log("Agreement Data:", agreementInfoData);
             let url = `${BASE_URL}/save-document`;
@@ -896,26 +925,31 @@ export default function Dashboard({ navigation }) {
                 .then((response) => {
                     // console.log(JSON.stringify(response.data));
                     if (response.data.status.statusCode === 1) {
+                        setIsFormSubmitting(false);
                         fetchUserDashboard();
                         Alert.alert('Success', 'Agreement Information updated');
                         setStep((prev) => prev + 1);
                     }
                     else {
+                        setIsFormSubmitting(false);
                         Alert.alert('Error', 'Please try again');
                     }
                 })
                 .catch((error) => {
                     console.log(error);
+                    setIsFormSubmitting(false);
                     Alert.alert('Error', 'Please try again');
                 });
             // setStep(step + 1);
         } else {
+            setIsFormSubmitting(false);
             console.log("Check Alert Message");
         }
     }
 
     const submitFinancialInfo = () => {
         console.log("Financial info submitted!");
+        setIsFormSubmitting(false);
         if (ValidateForm(financialFormFields, financialInfoData)) {
             // console.log("Agreement Data:", financialInfoData);
             let url = `${BASE_URL}/update-bank`
@@ -936,19 +970,25 @@ export default function Dashboard({ navigation }) {
             axios.request(config)
                 .then((response) => {
                     if (response.data.status.statusCode === 1) {
+                        setIsFormSubmitting(false);
                         fetchUserDashboard();
                         Alert.alert('Success', 'Financial Information updated');
-                        setStep((prev) => prev + 1);
+                        // setStep((prev) => prev + 1);
+                        closeModal();
                     }
                     else {
+                        setIsFormSubmitting(false);
                         Alert.alert('Error', 'Please try again');
                     }
                 })
                 .catch((error) => {
                     console.log(error);
+                    setIsFormSubmitting(false);
+                    Alert.alert('Error', 'Please try again');
                 });
             // setStep(step + 1);
         } else {
+            setIsFormSubmitting(false);
             console.log("Check Alert Message");
         }
     }
@@ -1290,7 +1330,13 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View style={{}}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <FormHeader backFunction={closeModal}
+                                nextFunction={submitPersonalInfo}
+                                isFormSubmitting={isFormSubmitting}
+                                formNumber={'1'}
+                                formHeading={'Personal Information'}
+                            />
+                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <TouchableOpacity onPress={closeModal} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
                                     <Text style={{ color: COLORS.primary, marginLeft: 3 }}>Back</Text>
@@ -1310,7 +1356,7 @@ export default function Dashboard({ navigation }) {
                             <Text>Form (1/6)</Text>
                             <Text style={styles.formTitle}>
                                 Personal Information
-                            </Text>
+                            </Text> */}
                             <Form rules={personalFormFields}
                                 formData={personalInfoForm}
                                 handleTextChange={handlePersonalInfoTextChange}
@@ -1328,7 +1374,13 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                nextFunction={submitEducationalInfo}
+                                isFormSubmitting={isFormSubmitting}
+                                formNumber={'2'}
+                                formHeading={'Educational Qualifications'}
+                            />
+                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
                                     <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
@@ -1342,7 +1394,7 @@ export default function Dashboard({ navigation }) {
                             <Text>Form (2/6)</Text>
                             <Text style={styles.formTitle}>
                                 Educational Qualifications
-                            </Text>
+                            </Text> */}
                             <Form rules={educationalFormFields}
                                 formData={educationalInfoFormData}
                                 handleTextChange={handleEducationalInfoTextChange}
@@ -1362,7 +1414,13 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                nextFunction={submitPanInfo}
+                                isFormSubmitting={isFormSubmitting}
+                                formNumber={'3'}
+                                formHeading={'PAN Card Details'}
+                            />
+                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
                                     <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
@@ -1376,7 +1434,7 @@ export default function Dashboard({ navigation }) {
                             <Text>Form (3/6)</Text>
                             <Text style={styles.formTitle}>
                                 PAN Card Details
-                            </Text>
+                            </Text> */}
                             <Form rules={panFormFields}
                                 formData={panInfoData}
                                 handleTextChange={handlePanInfoTextChange}
@@ -1397,7 +1455,13 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                nextFunction={submitAadharInfo}
+                                isFormSubmitting={isFormSubmitting}
+                                formNumber={'4'}
+                                formHeading={'Aadhar Card Details'}
+                            />
+                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
                                     <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
@@ -1411,7 +1475,7 @@ export default function Dashboard({ navigation }) {
                             <Text>Form (4/6)</Text>
                             <Text style={styles.formTitle}>
                                 Aadhar Card Details
-                            </Text>
+                            </Text> */}
                             <Form rules={aadharFormFields}
                                 formData={aadharInfoData}
                                 handleTextChange={handleAadharInfoTextChange}
@@ -1432,7 +1496,13 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                        <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                nextFunction={submitAgreementInfo}
+                                isFormSubmitting={isFormSubmitting}
+                                formNumber={'5'}
+                                formHeading={'Agreement Form'}
+                            />
+                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
                                     <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
@@ -1446,13 +1516,15 @@ export default function Dashboard({ navigation }) {
                             <Text>Form (5/6)</Text>
                             <Text style={styles.formTitle}>
                                 Agreement Form
-                            </Text>
+                            </Text> */}
                             <Form rules={agreementFormFields}
                                 formData={agreementInfoData}
                                 selectFile={selectAgreement}
                                 formErrors={formErrors}
                                 saveForm={submitAgreementInfo}
                                 isUploading={isUploading}
+                                isDownloading={isDownloading}
+                                setIsDownloading={setIsDownloading}
                             />
                         </View>
                         {/* <View style={styles.formButtonsContainer}>
@@ -1465,7 +1537,13 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                        <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                nextFunction={submitFinancialInfo}
+                                isFormSubmitting={isFormSubmitting}
+                                formNumber={'6'}
+                                formHeading={'Financial Information'}
+                            />
+                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
                                 <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
                                     <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
@@ -1479,7 +1557,7 @@ export default function Dashboard({ navigation }) {
                             <Text>Form (6/6)</Text>
                             <Text style={styles.formTitle}>
                                 Financial Information
-                            </Text>
+                            </Text> */}
                             <Form rules={financialFormFields}
                                 handleTextChange={handleFinancialInfoTextChange}
                                 formData={financialInfoData}

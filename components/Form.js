@@ -15,6 +15,8 @@ export default function Form(props) {
     const toast = useToast();
     let rules = props.rules;
     let isUploading = props.isUploading;
+    let isDownloading = props.isDownloading;
+    let setIsDownloading = props.setIsDownloading;
     let formData = props.formData;
     // console.log("FormData :", formData);
     let handleTextChange = props.handleTextChange;
@@ -158,7 +160,7 @@ export default function Form(props) {
                                     <Text style={{ marginVertical: 20, width: '50%', overflow: 'hidden' }}>File selected: <Text style={{ color: 'gray' }}>{formData[item.data.name]?.name ? formData[item.data.name]?.name : 'None'}</Text></Text>
                                     {isUploading ?
                                         <>
-                                        <ActivityIndicator color={COLORS.primary} size={40} style={{ marginRight: 10 }} />
+                                            <ActivityIndicator color={COLORS.primary} size={40} style={{ marginRight: 10 }} />
                                         </> :
                                         <>
                                             <TouchableOpacity style={{ width: 110, borderRadius: 8, borderWidth: 1.2, borderColor: formErrors[item.data.name] ? 'red' : COLORS.primary, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => selectFile(item.data.name)}>
@@ -178,7 +180,15 @@ export default function Form(props) {
                             </>
                         ) : item.field === 'DOWNLOAD_BUTTON' ? (
                             <>
-                                <DownloadPDFButton name={item.data.filename} pdfUrl={item.data.url} />
+                                {isDownloading ?
+                                    <>
+                                        <ActivityIndicator color={COLORS.primary} size={35} style={{ marginVertical: 5 }} />
+                                    </> :
+                                    <>
+                                        <DownloadPDFButton setIsDownloading={setIsDownloading} name={item.data.fileName} pdfUrl={item.data.url} />
+                                    </>
+                                }
+
                             </>
                         ) : item.field === 'PARAGRAPH' ? (
                             <>
