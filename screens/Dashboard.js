@@ -1,4 +1,4 @@
-import { View, Modal, Text, StyleSheet, Platform, PermissionsAndroid, StatusBar, SafeAreaView, ScrollView, TouchableOpacity, KeyboardAvoidingView, FlatList, Alert, ActivityIndicator } from 'react-native';
+import { View, Modal, Text, StyleSheet, Platform, PermissionsAndroid, StatusBar, SafeAreaView, ScrollView, TouchableOpacity, Dimensions, KeyboardAvoidingView, FlatList, Alert, Image, ActivityIndicator } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import COLORS from '../constants/colors';
 import * as Progress from 'react-native-progress';
@@ -17,6 +17,9 @@ import { Dropdown } from 'react-native-element-dropdown';
 import DownloadPDFButton from '../components/DownloadButton';
 import Form from '../components/Form';
 import FormHeader from '../components/FormHeader';
+import Pdf from 'react-native-pdf';
+import Toast from "react-native-toast-notifications";
+import { useRef } from 'react';
 
 
 export default function Dashboard({ navigation }) {
@@ -593,11 +596,12 @@ export default function Dashboard({ navigation }) {
     const { user, userDashboardInfo, formFields, fetchUserDashboard } = context;
     const toast = useToast();
     const [progress, setProgress] = useState(0);
-    const [panFileName, setPanFileName] = useState("None");
-    const [aadharFileName, setAadharFileName] = useState("None");
+    // const [panFileName, setPanFileName] = useState("None");
+    // const [aadharFileName, setAadharFileName] = useState("None");
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [agreementFileName, setAgreementFileName] = useState("None");
-    const [financialFileName, setFinancialFileName] = useState("None");
+    const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+    // const [agreementFileName, setAgreementFileName] = useState("None");
+    // const [financialFileName, setFinancialFileName] = useState("None");
     const [personalFormFields, setPersonalFormFields] = useState(formFields?.personalDetails ? formFields?.personalDetails : []);
     const [educationalFormFields, setEducationalFormFields] = useState(formFields?.education ? formFields?.education : []);
     const [panFormFields, setPanFormFields] = useState(formFields?.panDetails ? formFields?.panDetails : [])
@@ -608,6 +612,9 @@ export default function Dashboard({ navigation }) {
     const [isUploading, setIsUploading] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+    const [imageResource, setImageResource] = useState('');
+    const [pdfResource, setPdfResource] = useState(null);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
     //**** Dynamic form requirements
 
@@ -618,6 +625,20 @@ export default function Dashboard({ navigation }) {
     const [aadharInfoData, setAadharInfoData] = useState({});
     const [agreementInfoData, setAgreementInfoData] = useState({});
     const [financialInfoData, setFinancialInfoData] = useState({});
+
+    const toastRef = useRef();
+
+    const showToast = (message, type) => {
+
+        toastRef.current.show(message, {
+            type: type,
+            placement: "bottom",
+            duration: 3000,
+            offset: 50,
+            animationType: "slide-in",
+            swipeEnabled: false
+        });
+    };
 
     const handlePersonalInfoTextChange = (text, field) => {
         setPersonalInfoForm({ ...personalInfoForm, [field]: text });
@@ -630,7 +651,7 @@ export default function Dashboard({ navigation }) {
     const handlePanInfoTextChange = (text, field) => {
         setPanInfoData({ ...panInfoData, [field]: text });
     }
-    
+
     const handleAadharInfoTextChange = (text, field) => {
         setAadharInfoData({ ...aadharInfoData, [field]: text });
     }
@@ -662,7 +683,7 @@ export default function Dashboard({ navigation }) {
     const handleAgreementInfoDropdown = (selection, field) => {
         setAgreementInfoData({ ...agreementInfoData, [field]: selection });
     }
-    
+
     const handleFinancialInfoDropdown = (selection, field) => {
         setFinancialInfoData({ ...financialInfoData, [field]: selection });
     }
@@ -684,14 +705,16 @@ export default function Dashboard({ navigation }) {
         }
         setFormErrors(errors);
         if (Object.keys(errors).length !== 0) {
-            Alert.alert('Error', "Please re-check your inputs");
+            // Alert.alert('Error', "Please re-check your inputs");
+            showToast('Please re-check your inputs', 'danger');
             console.log("hello ", formErrors);
             return false;
         }
 
         //validate email
         if (rules.some(rule => rule.data.name === 'email' && formData[rule.data.name] && !checkEmail(formData[rule.data.name]))) {
-            Alert.alert('Error', 'Please enter a valid email');
+            // Alert.alert('Error', 'Please enter a valid email');
+            showToast('Please enter a valid email','success');
             return false;
         }
 
@@ -728,12 +751,14 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        Alert.alert('Success', 'Personal Information updated');
+                        // Alert.alert('Success', 'Personal Information updated');
+                        showToast("Personal Information updated", 'success');
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        Alert.alert('Error', 'Please try again');
+                        // Alert.alert('Error', 'Please try again');
+                        showToast("Please try again later", 'normal');
                     }
                     // setFormErrors({});
                 })
@@ -777,12 +802,14 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        Alert.alert('Success', 'Educational Information updated');
+                        // Alert.alert('Success', 'Educational Information updated');
+                        showToast('Educational Information updated', 'success');
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        Alert.alert('Error', 'Please try again');
+                        // Alert.alert('Error', 'Please try again');
+                        showToast("Please try again later", 'normal');
                     }
                 })
                 .catch((error) => {
@@ -823,18 +850,22 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        Alert.alert('Success', 'Pan information updated');
+                        // Alert.alert('Success', 'Pan information updated');
+                        showToast('Pan information updated', 'success');
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        Alert.alert('Error', 'Please try again');
+                        // Alert.alert('Error', 'Please try again');
+                        showToast('Please try again later', 'normal');
+                        
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    Alert.alert('Error', 'Please try again');
+                    // Alert.alert('Error', 'Please try again');
+                    showToast('Please try again later', 'normal');
                 });
             // console.log("PAN Data:", panInfoData);
 
@@ -843,15 +874,15 @@ export default function Dashboard({ navigation }) {
             console.log("Check Alert Message");
         }
     }
-    const check = () => {
-        console.log("Educational info submitted!");
-        if (ValidateForm(educationalFormFields, educationalInfoFormData)) {
-            console.log("Educational Data Check:", educationalInfoFormData);
-            setStep(step + 1);
-        } else {
-            console.log("Check Alert Message");
-        }
-    }
+    // const check = () => {
+    //     console.log("Educational info submitted!");
+    //     if (ValidateForm(educationalFormFields, educationalInfoFormData)) {
+    //         console.log("Educational Data Check:", educationalInfoFormData);
+    //         setStep(step + 1);
+    //     } else {
+    //         console.log("Check Alert Message");
+    //     }
+    // }
 
     const submitAadharInfo = () => {
         console.log("Aadhar info submitted!");
@@ -881,18 +912,23 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        Alert.alert('Success', 'Aadhar Information updated');
+                        // Alert.alert('Success', 'Aadhar Information updated');
+                        showToast('Aadhar Information updated',"success");
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        Alert.alert('Error', 'Please try again');
+                        // Alert.alert('Error', 'Please try again');
+                        showToast('Please try again later',"normal");
+
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    Alert.alert('Error', 'Please try again');
+                    // Alert.alert('Error', 'Please try again');
+                    showToast('Please try again later',"normal");
+
                 });
             // setStep(step + 1);
         } else {
@@ -927,18 +963,22 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        Alert.alert('Success', 'Agreement Information updated');
+                        // Alert.alert('Success', 'Agreement Information updated');
+                        showToast('Agreement Information updated',"success");
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        Alert.alert('Error', 'Please try again');
+                        // Alert.alert('Error', 'Please try again');
+                        showToast('Please try again',"normal");
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    Alert.alert('Error', 'Please try again');
+                    // Alert.alert('Error', 'Please try again');
+                    showToast('Please try again',"normal");
+
                 });
             // setStep(step + 1);
         } else {
@@ -972,19 +1012,24 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        Alert.alert('Success', 'Financial Information updated');
+                        // Alert.alert('Success', 'Financial Information updated');
+                        showToast('Financial Information updated',"success");
                         // setStep((prev) => prev + 1);
                         closeModal();
                     }
                     else {
                         setIsFormSubmitting(false);
-                        Alert.alert('Error', 'Please try again');
+                        // Alert.alert('Error', 'Please try again');
+                        showToast('Please try again',"normal");
+
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    Alert.alert('Error', 'Please try again');
+                    // Alert.alert('Error', 'Please try again');
+                    showToast('Please try again',"normal");
+
                 });
             // setStep(step + 1);
         } else {
@@ -1042,14 +1087,19 @@ export default function Dashboard({ navigation }) {
                         fileInfo.path = path;
                         // setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name }); //TODO UPDATE THIS
                         setEducationalInfoFormData({ ...educationalInfoFormData, [name]: fileInfo });
-                        Alert.alert('Success', 'Upload Successful!');
+                        // Alert.alert('Success', 'Upload Successful!');
+                        showToast('Upload successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        Alert.alert('error', 'Please try uploading again!');
+                        // Alert.alert('error', 'Please try uploading again!');
+                        showToast('Please try uploading again','normal');
                     });
-
+            }
+            else {
+                setIsUploading(false);
+                console.log("Returning without file");
             }
         } catch (error) {
             setIsUploading(false);
@@ -1102,13 +1152,20 @@ export default function Dashboard({ navigation }) {
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name }); //TODO UPDATE THIS
-                        Alert.alert('Success', 'Upload Successful!');
+                        // Alert.alert('Success', 'Upload Successful!');
+                        showToast('Upload Successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        Alert.alert('error', 'Please try uploading again!');
+                        // Alert.alert('error', 'Please try uploading again!');
+                        showToast('Please try uploading again','normal');
+
                     });
+            }
+            else {
+                setIsUploading(false);
+                console.log("Returning without file");
             }
         } catch (error) {
             setIsUploading(false);
@@ -1160,41 +1217,47 @@ export default function Dashboard({ navigation }) {
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setAadharInfoData({ ...aadharInfoData, [name]: fileInfo, path: path, name: name });
-                        Alert.alert('Success', 'Upload Successful!');
+                        // Alert.alert('Success', 'Upload Successful!');
+                        showToast('Upload Successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        Alert.alert('error', 'Please try uploading again!');
+                        // Alert.alert('error', 'Please try uploading again!');
+                        showToast('Please try uploading again','normal');
                     });
                 // setAadharFileName(document.assets[0].name);
+            }
+            else {
+                setIsUploading(false);
+                console.log("Returning without file");
             }
         } catch (error) {
             console.error('Error picking document:', error);
         }
     }
 
-    const selMarkTemp = async (name) => {
-        try {
-            const document = await DocumentPicker.getDocumentAsync({
-            });
-            if (!document.canceled) {
-                // Create Blob object
-                const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-                console.log("Data in blob:", blob);
-                let data = {
-                    name: document.assets[0].name,
-                    // uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-                    blob: blob,
-                    // type: document.assets[0].mimeType
-                }
-                setAadharInfoData({ ...educationalInfoFormData, [name]: data });
-                // setAadharFileName(document.assets[0].name);
-            }
-        } catch (error) {
-            console.error('Error picking document:', error);
-        }
-    }
+    // const selMarkTemp = async (name) => {
+    //     try {
+    //         const document = await DocumentPicker.getDocumentAsync({
+    //         });
+    //         if (!document.canceled) {
+    //             // Create Blob object
+    //             const blob = await fetch(document.assets[0].uri).then(response => response.blob());
+    //             console.log("Data in blob:", blob);
+    //             let data = {
+    //                 name: document.assets[0].name,
+    //                 // uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
+    //                 blob: blob,
+    //                 // type: document.assets[0].mimeType
+    //             }
+    //             setAadharInfoData({ ...educationalInfoFormData, [name]: data });
+    //             // setAadharFileName(document.assets[0].name);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error picking document:', error);
+    //     }
+    // }
 
     const selectAgreement = async (name) => {
         try {
@@ -1238,15 +1301,24 @@ export default function Dashboard({ navigation }) {
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setAgreementInfoData({ ...agreementInfoData, [name]: fileInfo, path: path, name: name });
-                        Alert.alert('Success', 'Upload Successful!');
+                        // Alert.alert('Success', 'Upload Successful!');
+                        showToast('Upload Successful','success');
+
+                        
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        Alert.alert('error', 'Please try uploading again!');
+                        // Alert.alert('error', 'Please try uploading again!');
+                        showToast('Please try uploading again','normal');
+
                     });
                 // setAgreementInfoData({ ...agreementInfoData, [name]: data });
                 // setAgreementFileName(document.assets[0].name);
+            }
+            else {
+                setIsUploading(false);
+                console.log("Returning without file");
             }
         } catch (error) {
             console.error('Error picking document:', error);
@@ -1301,15 +1373,21 @@ export default function Dashboard({ navigation }) {
                         fileInfo.path = path;
                         // setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name });
                         setFinancialInfoData({ ...financialInfoData, [name]: fileInfo });
-                        Alert.alert('Success', 'Upload Successful!');
+                        // Alert.alert('Success', 'Upload Successful!');
+                        showToast('Upload Successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        Alert.alert('error', 'Please try uploading again!');
+                        // Alert.alert('error', 'Please try uploading again!');
+                        showToast('Please try uploading again','normal');
                     });
                 // setFinancialInfoData({ ...financialInfoData, [name]: data });
                 // setFinancialFileName(document.assets[0].name);
+            }
+            else {
+                setIsUploading(false);
+                console.log("Returning without file");
             }
         } catch (error) {
             console.error('Error picking document:', error);
@@ -1318,6 +1396,15 @@ export default function Dashboard({ navigation }) {
 
     const closeModal = () => {
         setIsModalVisible(false);
+        // showToast('Details updated!', 'success');
+        toast.show("Details updated successfully!", {
+            type: "success",
+            placement: "top",
+            duration: 3000,
+            offset: 50,
+            animationType: "slide-in",
+            swipeEnabled: false
+        });
         // setAadharFileName("None");
         // setAgreementFileName("None");
         // setPanFileName("None");
@@ -1401,7 +1488,8 @@ export default function Dashboard({ navigation }) {
                                 formErrors={formErrors}
                                 selectFile={selectMarksheets}
                                 saveForm={submitEducationalInfo}
-                                isUploading={isUploading} />
+                                isUploading={isUploading}
+                                createPreview={createPreview} />
                         </View>
                         {/* <View style={styles.formButtonsContainer}>
                             <Button style={{ marginLeft: 15, ...styles.formButton }} title="Save" onPress={submitEducationalInfo} />
@@ -1442,6 +1530,7 @@ export default function Dashboard({ navigation }) {
                                 formErrors={formErrors}
                                 saveForm={submitPanInfo}
                                 isUploading={isUploading}
+                                createPreview={createPreview}
                             />
                         </View>
                         {/* <View style={styles.formButtonsContainer}>
@@ -1483,6 +1572,7 @@ export default function Dashboard({ navigation }) {
                                 formErrors={formErrors}
                                 saveForm={submitAadharInfo}
                                 isUploading={isUploading}
+                                createPreview={createPreview}
                             />
                         </View>
                         {/* <View style={styles.formButtonsContainer}>
@@ -1496,7 +1586,7 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View>
-                        <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
                                 nextFunction={submitAgreementInfo}
                                 isFormSubmitting={isFormSubmitting}
                                 formNumber={'5'}
@@ -1525,6 +1615,7 @@ export default function Dashboard({ navigation }) {
                                 isUploading={isUploading}
                                 isDownloading={isDownloading}
                                 setIsDownloading={setIsDownloading}
+                                createPreview={createPreview}
                             />
                         </View>
                         {/* <View style={styles.formButtonsContainer}>
@@ -1537,7 +1628,7 @@ export default function Dashboard({ navigation }) {
                 return (
                     <View style={styles.form}>
                         <View>
-                        <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
                                 nextFunction={submitFinancialInfo}
                                 isFormSubmitting={isFormSubmitting}
                                 formNumber={'6'}
@@ -1565,6 +1656,7 @@ export default function Dashboard({ navigation }) {
                                 formErrors={formErrors}
                                 saveForm={submitFinancialInfo}
                                 isUploading={isUploading}
+                                createPreview={createPreview}
                             />
                         </View>
                         {/* <View style={styles.formButtonsContainer}>
@@ -1591,6 +1683,10 @@ export default function Dashboard({ navigation }) {
     const openFormsModal = () => {
         setStep(1);
         setIsModalVisible(true);
+    }
+
+    const openPreviewModal = () => {
+        setIsPreviewVisible(true);
     }
 
     const verifyToken = async () => {
@@ -1678,6 +1774,36 @@ export default function Dashboard({ navigation }) {
             });
     }
 
+
+    const createPreview = (data) => {
+        if (data.type === 'image/jpeg') {
+            setIsPreviewLoading(true);
+            setImageResource(data.path);
+            setIsPreviewVisible(true);
+        }
+        else if (data.type === 'application/pdf') {
+            setIsPreviewLoading(true);
+            setPdfResource({
+                uri: data.path,
+                cache: true
+            });
+            console.log("Path is:", data.path);
+            setIsPreviewVisible(true);
+        }
+        else {
+            // Alert.alert("Error", 'Please select a valid file type');
+            showToast('Please select a valid file type','normal');
+
+        }
+    }
+
+    const closePreviewModal = () => {
+        console.log("closed Preview");
+        setImageResource('');
+        setPdfResource(null);
+        setIsPreviewVisible(false);
+    }
+
     useEffect(() => {
         setTimeout(() => {
             setProgress(userDashboardInfo["Percentage Complete"] / 100);
@@ -1701,7 +1827,64 @@ export default function Dashboard({ navigation }) {
                         {renderFormStep()}
                     </View>
                 </View>
+                <Toast ref={toastRef} />
             </Modal>
+
+            <Modal visible={isPreviewVisible}
+                onRequestClose={closePreviewModal} animationType='slide'>
+                <View style={{ flex: 1, paddingVertical: 20, paddingHorizontal: 10 }}>
+                    <View style={{
+                        width: '100%',
+                        height: '100%',
+                    }}>
+                        <TouchableOpacity onPress={closePreviewModal} style={{ alignSelf: 'flex-end', marginBottom: 10 }}>
+                            <Ionicons size={25} name={'close-circle-outline'} color={COLORS.primary} />
+                        </TouchableOpacity>
+                        {/* <Text style={{ fontSize: 20, color: COLORS.primary }}>filename.pdf</Text> */}
+                        <View style={{ flex: 1 }}>
+                            {imageResource !== '' &&
+                                <>
+                                    {isPreviewLoading && <ActivityIndicator color={COLORS.primary} size={40} style={{}} />}
+                                    <Image
+                                        source={{ uri: imageResource }}
+                                        style={styles.image}
+                                        onLoad={() => {
+                                            setIsPreviewLoading(false);
+                                        }}
+                                    />
+                                </>}
+
+                            {pdfResource &&
+                                <>
+                                    {/* <Text style={styles.title}>Agreement.pdf</Text> */}
+                                    <View style={{ backgroundColor: '#ccc', padding: 10, borderRadius: 10 }}>
+
+                                        {isPreviewLoading && <ActivityIndicator color={COLORS.primary} size={40} style={{}} />}
+                                        <Pdf
+                                            trustAllCerts={false}
+                                            source={pdfResource}
+                                            style={styles.pdf}
+                                            onLoadComplete={(numberOfPages, filePath) => {
+                                                console.log(`loaded ${numberOfPages}`);
+                                                setIsPreviewLoading(false);
+                                            }}
+                                            // onLoadProgress={(precent) => {
+                                            //     console.log("percent:", precent);
+                                            //     if (precent === 1) {
+                                            //         // setIsPreviewLoading(false);
+                                            //     }
+                                            // }}
+                                            onError={(error) => {
+                                                console.log(`Error Here:`, error);
+                                            }}
+                                        />
+                                    </View>
+                                </>}
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {StatusBar.setBarStyle('dark-content', true)}
             <View style={styles.headingContainer}>
                 <Text style={styles.welcomeText}>Welcome</Text>
@@ -1934,5 +2117,16 @@ const styles = StyleSheet.create({
     iconStyle: {
         width: 20,
         height: 20,
+    },
+    pdf: {
+        width: Dimensions.get('window').width - 40,
+        height: Dimensions.get('window').height,
+        backgroundColor: '#ccc'
+    },
+    image: {
+        width: '100%', // Set the desired width
+        height: '80%', // Set the desired height
+        resizeMode: 'contain', // or 'contain' for different resize modes
+        borderRadius: 10, // Optional: Add borderRadius for a rounded image
     },
 })

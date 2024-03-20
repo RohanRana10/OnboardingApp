@@ -24,10 +24,18 @@ export default function Form(props) {
     let selectFile = props.selectFile;
     let formErrors = props.formErrors;
     let saveForm = props.saveForm;
+    let openPreview = props.openPreview;
+    let createPreview = props.createPreview;
 
     const makeToast = () => {
         console.log("toast made");
         Alert.alert('Error', "No changes found!");
+    }
+
+    const showPreview = (data) => {
+        console.log(data);
+        createPreview(data);
+        // openPreview();
     }
     return (
         <View style={{ width: '100%', height: '84%', marginTop: 0, paddingVertical: 0 }}>
@@ -157,16 +165,35 @@ export default function Form(props) {
                         ) : item.field === 'UPLOAD_BUTTON' ? (
                             <>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <Text style={{ marginVertical: 20, width: '50%', overflow: 'hidden' }}>File selected: <Text style={{ color: 'gray' }}>{formData[item.data.name]?.name ? formData[item.data.name]?.name : 'None'}</Text></Text>
+                                    <Text style={{ marginVertical: 20, width: '50%', overflow: 'hidden' }}>File selected: <Text style={{ color: 'gray' }}>
+                                        {formData[item.data.name]?.name ? formData[item.data.name]?.name : 'None'}</Text>
+                                    </Text>
                                     {isUploading ?
                                         <>
                                             <ActivityIndicator color={COLORS.primary} size={40} style={{ marginRight: 10 }} />
                                         </> :
                                         <>
-                                            <TouchableOpacity style={{ width: 110, borderRadius: 8, borderWidth: 1.2, borderColor: formErrors[item.data.name] ? 'red' : COLORS.primary, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => selectFile(item.data.name)}>
+                                            {formData[item.data.name]?.name ? <>
+                                            {/* {console.log(formData)} */}
+                                                <TouchableOpacity style={{}} onPress={() => {
+                                                    // console.log(`Preview for ${formData[item.data.name]?.path ? formData[item.data.name]?.path : formData?.path}`)
+                                                    let data = {
+                                                        path: formData[item.data.name]?.path ? formData[item.data.name]?.path : formData?.path,
+                                                        name: formData[item.data.name]?.name,
+                                                        type: formData[item.data.name]?.type
+                                                    };
+                                                    showPreview(data);
+                                                    }}>
+                                                    <View style={{ alignItems: 'center', flexDirection: 'row' }}>
+                                                        <Text style={{ color: 'orange', marginLeft: 5 }}>Preview</Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            </> : <></>}
+
+                                            <TouchableOpacity style={{ width: 100, borderRadius: 8, borderWidth: 1.2, borderColor: formErrors[item.data.name] ? 'red' : COLORS.primary, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => selectFile(item.data.name)}>
                                                 <View style={{ alignItems: 'center', flexDirection: 'row' }}>
-                                                    <Ionicons size={20} name={'share-outline'} color={'black'} />
-                                                    <Text style={{ color: 'black', marginLeft: 5 }}>UPLOAD</Text>
+                                                    <Ionicons size={17} name={'share-outline'} color={COLORS.primary} />
+                                                    <Text style={{ color: COLORS.primary, marginLeft: 5 }}>UPLOAD</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         </>
