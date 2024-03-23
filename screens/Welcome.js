@@ -7,21 +7,6 @@ const Welcome = ({ navigation }) => {
         <LinearGradient style={{ flex: 1 }} colors={[COLORS.secondary, COLORS.primary]}>
             {StatusBar.setBarStyle('light-content', true)}
             <View>
-                {/* <Image
-                    source={require('../assets/LogoIcon.png')}
-                    style={{
-                        height: 100,
-                        width: 100,
-                        borderRadius: 20,
-                        position: 'absolute',
-                        top: 10,
-                        transform: [
-                            { translateX: 20 },
-                            { translateY: 50 },
-                            { rotate: '-15deg' }
-                        ]
-                    }}
-                /> */}
                 <Image
                     source={require('../assets/LogoIcon.png')}
                     style={{

@@ -36,13 +36,11 @@ export default function Login({ navigation }) {
             errors.password = "Password is required!";
         }
         setErrors(errors);
-        // console.log(Object.keys(errors));
         return Object.keys(errors).length === 0;
     }
 
     const handleSubmit = () => {
         if (validateForm()) {
-            // console.log(`Submitted! Username: ${username}, Password: ${password}`);
             Keyboard.dismiss();
             login();
             setUsername("");
@@ -80,8 +78,6 @@ export default function Login({ navigation }) {
         axios.request(config)
             .then((response) => {
                 if (response.data.status.statusCode !== 1) {
-                    // console.log("Incorrect username or password!");
-                    // ToastAndroid.show("Incorrect Username or Password!", 1500);
                     toast.show("Incorrect Username or Password!", {
                         type: "warning",
                         placement: "bottom",
@@ -181,10 +177,6 @@ export default function Login({ navigation }) {
                                 </Text>
                             </TouchableOpacity>
                         </View>
-                        {/* <Button style={{
-                    marginTop: 10,
-                    padding: 20
-                }} title='Login' onPress={handleSubmit} /> */}
                         {loading ? <ActivityIndicator color={'white'} size={40} style={{ marginTop: 18 }} /> : <Button title="LOGIN"
                             onPress={handleSubmit}
                             style={{
@@ -201,7 +193,6 @@ export default function Login({ navigation }) {
 
 const styles = StyleSheet.create({
     container: {
-        // backgroundColor: "#061621",
         justifyContent: 'center',
         flex: 1,
         paddingHorizontal: 20,
@@ -221,20 +212,9 @@ const styles = StyleSheet.create({
         height: 400
     },
     form: {
-        // backgroundColor: '#061621',
         paddingHorizontal: 25,
         paddingVertical: 28,
         borderRadius: 30,
-        // shadowColor: 'black',
-        // shadowOffset: {
-        //     width: 0,
-        //     height: 2
-        // },
-        // shadowOpacity: 0.25,
-        // shadowRadius: 4,
-        // elevation: 5,
-        // borderWidth: 1,
-        // borderColor: 'gray'
     },
     label: {
         fontSize: 16,
@@ -254,10 +234,6 @@ const styles = StyleSheet.create({
     inputPassword: {
         height: 40,
         width: '88%',
-        // backgroundColor: 'white',
-        // borderColor: '#ddd',
-        // borderWidth: 1,
-        // marginBottom: 15,
         padding: 10,
         borderRadius: 5,
     },
@@ -277,7 +253,6 @@ const styles = StyleSheet.create({
     },
     forgotPwdContainer: {
         alignItems: 'flex-end',
-        // paddingBottom: 10
     },
     forgotPwdText: {
         color: 'gray',

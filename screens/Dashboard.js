@@ -1,10 +1,9 @@
-import { View, Modal, Text, StyleSheet, Platform, PermissionsAndroid, StatusBar, SafeAreaView, ScrollView, TouchableOpacity, Dimensions, KeyboardAvoidingView, FlatList, Alert, Image, ActivityIndicator } from 'react-native';
+import { View, Modal, Text, StyleSheet, Platform, StatusBar, SafeAreaView, ScrollView, TouchableOpacity, Dimensions, Image, ActivityIndicator } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import COLORS from '../constants/colors';
 import * as Progress from 'react-native-progress';
 import Button from '../components/Button';
 import RectangleCard from '../components/RectangleCard';
-import DropdownComponent from '../components/Dropdown';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -12,596 +11,20 @@ import { UserContext } from '../context/userContext';
 import { BASE_URL } from '../utils/APIConstants';
 import { useToast } from 'react-native-toast-notifications';
 import axios from 'axios';
-import { TextInput } from 'react-native-paper';
-import { Dropdown } from 'react-native-element-dropdown';
-import DownloadPDFButton from '../components/DownloadButton';
 import Form from '../components/Form';
 import FormHeader from '../components/FormHeader';
 import Pdf from 'react-native-pdf';
 import Toast from "react-native-toast-notifications";
 import { useRef } from 'react';
 
-
 export default function Dashboard({ navigation }) {
-
-    let personalInfoRules = [
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'name',
-                label: 'Name',
-                placeholder: 'Enter Name',
-                maxLength: 30,
-                isRequired: true,
-                badMessage: 'Enter a valid Name'
-            }
-        },
-        {
-            field: "DROPDOWN",
-            data: {
-                options: [
-                    { label: 'Male', value: 'male' },
-                    { label: 'Female', value: 'female' },
-                    { label: 'Others', value: 'others' }
-                ],
-                name: 'gender',
-                label: 'Gender',
-                placeholder: 'Select Gender',
-                isRequired: true,
-                badMessage: 'Please select a gender'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'contact',
-                label: 'Contact No.',
-                placeholder: 'Enter Contact No.',
-                maxLength: 10,
-                keyboardType: 'numeric',
-                isRequired: true,
-                badMessage: 'Enter a valid Contact No.'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'address1',
-                label: 'Address Line 1',
-                placeholder: 'Enter House No. and Area',
-                isRequired: true,
-                badMessage: 'Please enter House No. and Area'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'address2',
-                label: 'Address Line 2',
-                placeholder: 'Enter State',
-                isRequired: true,
-                badMessage: 'Please enter State'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'pincode',
-                label: 'Pin Code',
-                placeholder: 'Enter Pincode',
-                maxLength: 6,
-                keyboardType: 'numeric',
-                isRequired: true,
-                badMessage: 'Please enter Pin Code'
-            }
-        },
-
-    ];
-    let educationalInfoRules = [
-        {
-            field: 'SUBHEADING',
-            data: {
-                label: 'Graduation'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'graduation',
-                label: 'Degree Name',
-                placeholder: 'Eg. B.Tech',
-                maxLength: 30,
-                badMessage: 'Enter a Degree Name'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'graduationYear',
-                label: 'Year of Completion',
-                placeholder: 'Eg. 2019',
-                keyboardType: 'numeric',
-                maxLength: 4,
-                badMessage: 'Enter a valid Year'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'graduationInstitute',
-                label: 'Institute Name',
-                placeholder: 'Enter Institute Name',
-                maxLength: 30,
-                badMessage: 'Enter a valid Institute Name'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'graduationCGPA',
-                label: 'CGPA',
-                placeholder: 'Eg 9.20',
-                keyboardType: 'numeric',
-                maxLength: 5,
-                badMessage: 'Enter a valid CGPA'
-            }
-        },
-        {
-            field: "INFORMATION",
-            data: {
-                title: 'Upload Marksheet',
-                description: '(.pdf, .jpg, .jpeg files only)'
-            }
-        },
-        {
-            field: "UPLOAD_BUTTON",
-            data: {
-                name: 'gradMarksheet',
-                isRequired: true,
-                badMessage: 'Please upload a valid Marksheet'
-            }
-        },
-        {
-            field: 'SUBHEADING',
-            data: {
-                label: 'Secondary Education'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'secondaryInstitute',
-                label: 'Institute Name',
-                placeholder: 'Enter Institute Name',
-                maxLength: 30,
-                isRequired: true,
-                badMessage: 'Invalid Secondary Institution Name'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'secondaryYear',
-                label: 'Year of Completion',
-                placeholder: 'Eg. 2019',
-                maxLength: 4,
-                keyboardType: 'numeric',
-                isRequired: true,
-                badMessage: 'Invalid secondary education passing year'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'secondaryStream',
-                label: 'Stream',
-                placeholder: 'Eg. Science',
-                maxLength: 30,
-                isRequired: true,
-                badMessage: 'Invalid stream name'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'secondaryCGPA',
-                label: 'CGPA',
-                placeholder: 'Eg 9.20',
-                maxLength: 5,
-                keyboardType: 'numeric',
-                isRequired: true,
-                badMessage: 'Invalid secondary education CGPA'
-            }
-        },
-        {
-            field: "INFORMATION",
-            data: {
-                title: 'Upload Marksheet',
-                description: '(.pdf, .jpg, .jpeg files only)'
-            }
-        },
-        {
-            field: "UPLOAD_BUTTON",
-            data: {
-                name: 'secondaryMarksheet',
-                isRequired: true,
-                badMessage: 'Please upload a valid Marksheet'
-            }
-        },
-    ]
-
-    let panInfoRules = [
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'panNumber',
-                label: 'PAN Number',
-                placeholder: 'Eg: QAXCE0891D',
-                maxLength: 10,
-                // isRequired: true,
-                badMessage: 'Invalid PAN Number'
-            }
-        },
-        {
-            field: "INFORMATION",
-            data: {
-                title: 'Upload PAN Card',
-                description: '(.pdf, .jpg, .jpeg files only)'
-            }
-        },
-        {
-            field: "UPLOAD_BUTTON",
-            data: {
-                name: 'panUploadData',
-                // isRequired: true,
-                badMessage: 'Please upload PAN Card'
-            }
-        },
-    ];
-    let aadharInfoRules = [
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'aadharNumber',
-                label: 'Aadhar Number',
-                placeholder: 'Eg: 123456781234',
-                maxLength: 12,
-                isRequired: true,
-                badMessage: 'Invalid Aadhar Number'
-            }
-        },
-        {
-            field: "INFORMATION",
-            data: {
-                title: 'Upload Aadhar',
-                description: '(.pdf, .jpg, .jpeg files only)'
-            }
-        },
-        {
-            field: "UPLOAD_BUTTON",
-            data: {
-                name: 'aadharUploadData',
-                isRequired: true,
-                badMessage: 'Please upload Aadhar Card'
-            }
-        },
-    ];
-    let agreementInfoRules = [
-        {
-            field: "DOWNLOAD_BUTTON",
-            data: {
-                title: 'DOWNLOAD AGREEMENT FORM',
-                filename: 'resotech_agreement.pdf',
-                url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-            }
-        },
-        {
-            field: "PARAGRAPH",
-            data: {
-                description: 'Kindly download the Agreement Form, review and sign the Terms and Conditions, and then proceed to upload the document below.'
-            }
-        },
-        {
-            field: "INFORMATION",
-            data: {
-                title: 'Upload Signed Agreement Form',
-                description: '(.pdf file only)'
-            }
-        },
-        {
-            field: "UPLOAD_BUTTON",
-            data: {
-                name: 'agreementUploadData',
-                isRequired: true,
-                badMessage: 'Please upload Agreement Form'
-            }
-        },
-    ];
-    let financialInfoRules = [
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'bankName',
-                label: 'Bank Name',
-                placeholder: 'Eg. Kotak Mahindra Bank',
-                maxLength: 30,
-                isRequired: true,
-                badMessage: 'Invalid bank name'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'accountNumber',
-                label: 'A/C Number',
-                placeholder: 'Eg. 1234567890',
-                maxLength: 30,
-                isRequired: true,
-                badMessage: 'Invalid account number'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'bankIfsc',
-                label: 'IFSC CODE',
-                placeholder: 'Eg. KKMK1234',
-                maxLength: 30,
-                isRequired: true,
-                badMessage: 'Invalid IFSC code'
-            }
-        },
-        {
-            field: "TEXT_INPUT",
-            data: {
-                name: 'bankBranch',
-                label: 'Branch Name',
-                placeholder: 'Eg. Shiv Nagar, New Delhi',
-                maxLength: 30,
-                isRequired: true,
-                badMessage: 'Invalid Branch Name'
-            }
-        },
-        {
-            field: "INFORMATION",
-            data: {
-                title: 'Upload Cancelled Cheque',
-                description: '(.pdf, .jpg, .jpeg files only)'
-            }
-        },
-        {
-            field: "UPLOAD_BUTTON",
-            data: {
-                name: 'financialUploadData',
-                isRequired: true,
-                badMessage: 'Please upload Cancelled Cheque'
-            }
-        },
-    ];
-
-    // let test = [
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "firstName",
-    //             "label": "First Name",
-    //             "placeHolder": "Enter First Name",
-    //             "maxLength": 30,
-    //             "isRequired": true,
-    //             "badMessage": "Enter a valid Name"
-    //         }
-    //     },
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "lastName",
-    //             "label": "Last Name",
-    //             "placeHolder": "Enter Last Name",
-    //             "maxLength": 30,
-    //             "isRequired": true,
-    //             "badMessage": "Enter a valid Name"
-    //         }
-    //     },
-    //     {
-    //         "field": "DROPDOWN",
-    //         "data": {
-    //             "name": "gender",
-    //             "label": "Gender",
-    //             "placeHolder": "Select Gender",
-    //             "isRequired": true,
-    //             "badMessage": "Please Select a Gender",
-    //             "options": [
-    //                 {
-    //                     "label": "Male",
-    //                     "value": "male"
-    //                 },
-    //                 {
-    //                     "label": "Female",
-    //                     "value": "female"
-    //                 },
-    //                 {
-    //                     "label": "Others",
-    //                     "value": "others"
-    //                 }
-    //             ]
-    //         }
-    //     },
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "phoneNumber",
-    //             "label": "Contact Number",
-    //             "placeHolder": "Enter Contact No",
-    //             "maxLength": 10,
-    //             "isRequired": true,
-    //             "badMessage": "Enter a valid Number",
-    //             "keyboardType": "numeric"
-    //         }
-    //     },
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "street",
-    //             "label": "Address",
-    //             "placeHolder": "Enter House No. and Area",
-    //             "isRequired": true,
-    //             "badMessage": "Please enter House No. and Area"
-    //         }
-    //     },
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "city",
-    //             "label": "City",
-    //             "placeHolder": "Enter City",
-    //             "isRequired": true,
-    //             "badMessage": "Please enter City "
-    //         }
-    //     },
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "state",
-    //             "label": "State",
-    //             "placeHolder": "Enter State",
-    //             "isRequired": true,
-    //             "badMessage": "Please enter State "
-    //         }
-    //     },
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "country",
-    //             "label": "Country",
-    //             "placeHolder": "Enter Country",
-    //             "isRequired": true,
-    //             "badMessage": "Please enter Country "
-    //         }
-    //     },
-    //     {
-    //         "field": "TEXT_INPUT",
-    //         "data": {
-    //             "name": "pinCode",
-    //             "label": "Pin Code",
-    //             "placeHolder": "Enter Pin Code",
-    //             "maxLength": 6,
-    //             "isRequired": true,
-    //             "badMessage": "Please enter Pin Code ",
-    //             "keyboardType": "numeric"
-    //         }
-    //     }
-    // ]
-
-    let test = [
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "firstName",
-                "label": "First Name",
-                "placeHolder": "Enter First Name",
-                "maxLength": 30,
-                "isRequired": true,
-                "badMessage": "Enter a valid Name"
-            }
-        },
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "lastName",
-                "label": "Last Name",
-                "placeHolder": "Enter Last Name",
-                "maxLength": 30,
-                "isRequired": true,
-                "badMessage": "Enter a valid Name"
-            }
-        },
-        {
-            "field": "DROPDOWN",
-            "data": {
-                "name": "gender",
-                "label": "Gender",
-                "placeHolder": "Select Gender",
-                "isRequired": true,
-                "badMessage": "Please Select a Gender",
-                "options": [{ label: 'Male', value: 'M' }, { label: 'Female', value: 'F' }, { label: 'Others', value: 'O' }]
-            }
-        },
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "phoneNumber",
-                "label": "Contact Number",
-                "placeHolder": "Enter Contact No",
-                "maxLength": 10,
-                "isRequired": true,
-                "badMessage": "Enter a valid Number",
-                "keyboardType": "numeric"
-            }
-        },
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "street",
-                "label": "Address",
-                "placeHolder": "Enter House No. and Area",
-                "isRequired": true,
-                "badMessage": "Please enter House No. and Area"
-            }
-        },
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "city",
-                "label": "City",
-                "placeHolder": "Enter City",
-                "isRequired": true,
-                "badMessage": "Please enter City "
-            }
-        },
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "state",
-                "label": "State",
-                "placeHolder": "Enter State",
-                "isRequired": true,
-                "badMessage": "Please enter State "
-            }
-        },
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "country",
-                "label": "Country",
-                "placeHolder": "Enter Country",
-                "isRequired": true,
-                "badMessage": "Please enter Country "
-            }
-        },
-        {
-            "field": "TEXT_INPUT",
-            "data": {
-                "name": "pinCode",
-                "label": "Pin Code",
-                "placeHolder": "Enter Pin Code",
-                "maxLength": 6,
-                "isRequired": true,
-                "badMessage": "Please enter Pin Code ",
-                "keyboardType": "numeric"
-            }
-        }
-    ]
 
     const context = useContext(UserContext);
     const { user, userDashboardInfo, formFields, fetchUserDashboard } = context;
     const toast = useToast();
     const [progress, setProgress] = useState(0);
-    // const [panFileName, setPanFileName] = useState("None");
-    // const [aadharFileName, setAadharFileName] = useState("None");
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isPreviewVisible, setIsPreviewVisible] = useState(false);
-    // const [agreementFileName, setAgreementFileName] = useState("None");
-    // const [financialFileName, setFinancialFileName] = useState("None");
     const [personalFormFields, setPersonalFormFields] = useState(formFields?.personalDetails ? formFields?.personalDetails : []);
     const [educationalFormFields, setEducationalFormFields] = useState(formFields?.education ? formFields?.education : []);
     const [panFormFields, setPanFormFields] = useState(formFields?.panDetails ? formFields?.panDetails : [])
@@ -698,8 +121,6 @@ export default function Dashboard({ navigation }) {
         let errors = {};
         for (const rule of rules) {
             if (rule.field === 'TEXT_INPUT' && rule.data.isRequired && !formData[rule.data.name] || rule.field === 'TEXT_INPUT' && rule.data.maxLength && formData[rule.data.name] && rule.data.maxLength < formData[rule.data.name].length || rule.field === 'UPLOAD_BUTTON' && rule.data.isRequired && !formData[rule.data.name] || rule.field === 'DROPDOWN' && rule.data.isRequired && !formData[rule.data.name]) {
-                // Alert.alert('Error', rule.data.badMessage);
-                // return false;
                 errors[rule.data.name] = rule.data.badMessage;
             }
         }
@@ -725,14 +146,12 @@ export default function Dashboard({ navigation }) {
 
     //**** end
 
-
     const submitPersonalInfo = () => {
         console.log("personal info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(personalFormFields, personalInfoForm)) {
             let url = `${BASE_URL}/update-details`
             console.log("Presonal Data:", personalInfoForm) // Log the entered values
-            // console.log("Presonal Data:", user.token) // Log the entered values
             let data = JSON.stringify({ ...personalInfoForm });
 
             let config = {
@@ -751,16 +170,13 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        // Alert.alert('Success', 'Personal Information updated');
                         showToast("Personal Information updated", 'success');
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        // Alert.alert('Error', 'Please try again');
                         showToast("Please try again later", 'normal');
                     }
-                    // setFormErrors({});
                 })
                 .catch((error) => {
                     setIsFormSubmitting(false);
@@ -778,7 +194,6 @@ export default function Dashboard({ navigation }) {
         setIsFormSubmitting(true);
         if (ValidateForm(educationalFormFields, educationalInfoFormData)) {
             let url = `${BASE_URL}/update-education`
-            // console.log("Educational Data:", educationalInfoFormData);
             let data = JSON.stringify({
                 ...educationalInfoFormData,
                 gradMemoUrl: educationalInfoFormData?.gradMemoUrl?.path,
@@ -802,13 +217,11 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        // Alert.alert('Success', 'Educational Information updated');
                         showToast('Educational Information updated', 'success');
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        // Alert.alert('Error', 'Please try again');
                         showToast("Please try again later", 'normal');
                     }
                 })
@@ -846,17 +259,14 @@ export default function Dashboard({ navigation }) {
 
             axios.request(config)
                 .then((response) => {
-                    // console.log(JSON.stringify(response.data));
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        // Alert.alert('Success', 'Pan information updated');
                         showToast('Pan information updated', 'success');
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        // Alert.alert('Error', 'Please try again');
                         showToast('Please try again later', 'normal');
                         
                     }
@@ -864,31 +274,19 @@ export default function Dashboard({ navigation }) {
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    // Alert.alert('Error', 'Please try again');
                     showToast('Please try again later', 'normal');
                 });
-            // console.log("PAN Data:", panInfoData);
 
         } else {
             setIsFormSubmitting(false);
             console.log("Check Alert Message");
         }
     }
-    // const check = () => {
-    //     console.log("Educational info submitted!");
-    //     if (ValidateForm(educationalFormFields, educationalInfoFormData)) {
-    //         console.log("Educational Data Check:", educationalInfoFormData);
-    //         setStep(step + 1);
-    //     } else {
-    //         console.log("Check Alert Message");
-    //     }
-    // }
 
     const submitAadharInfo = () => {
         console.log("Aadhar info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(aadharFormFields, aadharInfoData)) {
-            // console.log("Aadhar Data:", aadharInfoData);
             let url = `${BASE_URL}/save-document`;
             let data = JSON.stringify({
                 "path": aadharInfoData?.path,
@@ -908,17 +306,14 @@ export default function Dashboard({ navigation }) {
 
             axios.request(config)
                 .then((response) => {
-                    // console.log(JSON.stringify(response.data));
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        // Alert.alert('Success', 'Aadhar Information updated');
                         showToast('Aadhar Information updated',"success");
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        // Alert.alert('Error', 'Please try again');
                         showToast('Please try again later',"normal");
 
                     }
@@ -926,11 +321,9 @@ export default function Dashboard({ navigation }) {
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    // Alert.alert('Error', 'Please try again');
                     showToast('Please try again later',"normal");
 
                 });
-            // setStep(step + 1);
         } else {
             setIsFormSubmitting(false);
             console.log("Check Alert Message");
@@ -941,7 +334,6 @@ export default function Dashboard({ navigation }) {
         console.log("Agreement info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(agreementFormFields, agreementInfoData)) {
-            // console.log("Agreement Data:", agreementInfoData);
             let url = `${BASE_URL}/save-document`;
             let data = JSON.stringify({
                 "path": agreementInfoData?.path,
@@ -959,28 +351,23 @@ export default function Dashboard({ navigation }) {
             };
             axios.request(config)
                 .then((response) => {
-                    // console.log(JSON.stringify(response.data));
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        // Alert.alert('Success', 'Agreement Information updated');
                         showToast('Agreement Information updated',"success");
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        // Alert.alert('Error', 'Please try again');
                         showToast('Please try again',"normal");
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    // Alert.alert('Error', 'Please try again');
                     showToast('Please try again',"normal");
 
                 });
-            // setStep(step + 1);
         } else {
             setIsFormSubmitting(false);
             console.log("Check Alert Message");
@@ -991,7 +378,6 @@ export default function Dashboard({ navigation }) {
         console.log("Financial info submitted!");
         setIsFormSubmitting(false);
         if (ValidateForm(financialFormFields, financialInfoData)) {
-            // console.log("Agreement Data:", financialInfoData);
             let url = `${BASE_URL}/update-bank`
             let data = JSON.stringify({
                 ...financialInfoData,
@@ -1012,14 +398,11 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        // Alert.alert('Success', 'Financial Information updated');
                         showToast('Financial Information updated',"success");
-                        // setStep((prev) => prev + 1);
                         closeModal();
                     }
                     else {
                         setIsFormSubmitting(false);
-                        // Alert.alert('Error', 'Please try again');
                         showToast('Please try again',"normal");
 
                     }
@@ -1027,11 +410,9 @@ export default function Dashboard({ navigation }) {
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    // Alert.alert('Error', 'Please try again');
                     showToast('Please try again',"normal");
 
                 });
-            // setStep(step + 1);
         } else {
             setIsFormSubmitting(false);
             console.log("Check Alert Message");
@@ -1046,17 +427,13 @@ export default function Dashboard({ navigation }) {
             if (!document.canceled) {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-                // console.log("Data in blob:", blob);
                 let fileInfo = {
                     name: document.assets[0].name,
                     uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-                    // blob: blob,
                     type: document.assets[0].mimeType
                 }
                 // Create FormData object
                 let uri = Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', '');
-
-                // console.log(uri);
 
                 let data = new FormData();
                 data.append('file', {
@@ -1076,7 +453,6 @@ export default function Dashboard({ navigation }) {
                     },
                     data: data
                 };
-                // console.log(data);
 
                 axios.request(config)
                     .then((response) => {
@@ -1085,15 +461,12 @@ export default function Dashboard({ navigation }) {
                         console.log(JSON.stringify(response.data));
                         console.log(path);
                         fileInfo.path = path;
-                        // setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name }); //TODO UPDATE THIS
                         setEducationalInfoFormData({ ...educationalInfoFormData, [name]: fileInfo });
-                        // Alert.alert('Success', 'Upload Successful!');
                         showToast('Upload successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        // Alert.alert('error', 'Please try uploading again!');
                         showToast('Please try uploading again','normal');
                     });
             }
@@ -1115,17 +488,13 @@ export default function Dashboard({ navigation }) {
             if (!document.canceled) {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-                // console.log("Data in blob:", blob);
                 let fileInfo = {
                     name: document.assets[0].name,
                     uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-                    // blob: blob,
                     type: document.assets[0].mimeType
                 }
                 // Create FormData object
                 let uri = Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', '');
-
-                // console.log(uri);
 
                 let data = new FormData();
                 data.append('file', {
@@ -1145,20 +514,17 @@ export default function Dashboard({ navigation }) {
                     },
                     data: data
                 };
-                // console.log(data);
                 axios.request(config)
                     .then((response) => {
                         setIsUploading(false);
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
-                        setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name }); //TODO UPDATE THIS
-                        // Alert.alert('Success', 'Upload Successful!');
+                        setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name });
                         showToast('Upload Successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        // Alert.alert('error', 'Please try uploading again!');
                         showToast('Please try uploading again','normal');
 
                     });
@@ -1181,17 +547,14 @@ export default function Dashboard({ navigation }) {
             if (!document.canceled) {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-                // console.log("Data in blob:", blob);
                 let fileInfo = {
                     name: document.assets[0].name,
                     uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-                    // blob: blob,
                     type: document.assets[0].mimeType
                 }
                 // Create FormData object
                 let uri = Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', '');
 
-                // console.log(uri);
                 let data = new FormData();
                 data.append('file', {
                     uri: uri,
@@ -1210,23 +573,19 @@ export default function Dashboard({ navigation }) {
                     },
                     data: data
                 };
-                // console.log(data);
                 axios.request(config)
                     .then((response) => {
                         setIsUploading(false);
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setAadharInfoData({ ...aadharInfoData, [name]: fileInfo, path: path, name: name });
-                        // Alert.alert('Success', 'Upload Successful!');
                         showToast('Upload Successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        // Alert.alert('error', 'Please try uploading again!');
                         showToast('Please try uploading again','normal');
                     });
-                // setAadharFileName(document.assets[0].name);
             }
             else {
                 setIsUploading(false);
@@ -1237,28 +596,6 @@ export default function Dashboard({ navigation }) {
         }
     }
 
-    // const selMarkTemp = async (name) => {
-    //     try {
-    //         const document = await DocumentPicker.getDocumentAsync({
-    //         });
-    //         if (!document.canceled) {
-    //             // Create Blob object
-    //             const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-    //             console.log("Data in blob:", blob);
-    //             let data = {
-    //                 name: document.assets[0].name,
-    //                 // uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-    //                 blob: blob,
-    //                 // type: document.assets[0].mimeType
-    //             }
-    //             setAadharInfoData({ ...educationalInfoFormData, [name]: data });
-    //             // setAadharFileName(document.assets[0].name);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error picking document:', error);
-    //     }
-    // }
-
     const selectAgreement = async (name) => {
         try {
             const document = await DocumentPicker.getDocumentAsync({
@@ -1266,17 +603,14 @@ export default function Dashboard({ navigation }) {
             if (!document.canceled) {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-                // console.log("Data in blob:", blob);
                 let fileInfo = {
                     name: document.assets[0].name,
                     uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-                    // blob: blob,
                     type: document.assets[0].mimeType
                 }
                 // Create FormData object
                 let uri = Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', '');
 
-                // console.log(uri);
                 let data = new FormData();
                 data.append('file', {
                     uri: uri,
@@ -1301,7 +635,6 @@ export default function Dashboard({ navigation }) {
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setAgreementInfoData({ ...agreementInfoData, [name]: fileInfo, path: path, name: name });
-                        // Alert.alert('Success', 'Upload Successful!');
                         showToast('Upload Successful','success');
 
                         
@@ -1309,12 +642,9 @@ export default function Dashboard({ navigation }) {
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        // Alert.alert('error', 'Please try uploading again!');
                         showToast('Please try uploading again','normal');
 
                     });
-                // setAgreementInfoData({ ...agreementInfoData, [name]: data });
-                // setAgreementFileName(document.assets[0].name);
             }
             else {
                 setIsUploading(false);
@@ -1333,17 +663,13 @@ export default function Dashboard({ navigation }) {
             if (!document.canceled) {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-                // console.log("Data in blob:", blob);
                 let fileInfo = {
                     name: document.assets[0].name,
                     uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-                    // blob: blob,
                     type: document.assets[0].mimeType
                 }
                 // Create FormData object
                 let uri = Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', '');
-
-                // console.log(uri);
 
                 let data = new FormData();
                 data.append('file', {
@@ -1363,7 +689,7 @@ export default function Dashboard({ navigation }) {
                     },
                     data: data
                 };
-                // console.log(data);
+
                 axios.request(config)
                     .then((response) => {
                         setIsUploading(false);
@@ -1371,19 +697,14 @@ export default function Dashboard({ navigation }) {
                         console.log(JSON.stringify(response.data));
                         console.log(path);
                         fileInfo.path = path;
-                        // setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name });
                         setFinancialInfoData({ ...financialInfoData, [name]: fileInfo });
-                        // Alert.alert('Success', 'Upload Successful!');
                         showToast('Upload Successful','success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        // Alert.alert('error', 'Please try uploading again!');
                         showToast('Please try uploading again','normal');
                     });
-                // setFinancialInfoData({ ...financialInfoData, [name]: data });
-                // setFinancialFileName(document.assets[0].name);
             }
             else {
                 setIsUploading(false);
@@ -1396,7 +717,6 @@ export default function Dashboard({ navigation }) {
 
     const closeModal = () => {
         setIsModalVisible(false);
-        // showToast('Details updated!', 'success');
         toast.show("Details updated successfully!", {
             type: "success",
             placement: "top",
@@ -1405,10 +725,6 @@ export default function Dashboard({ navigation }) {
             animationType: "slide-in",
             swipeEnabled: false
         });
-        // setAadharFileName("None");
-        // setAgreementFileName("None");
-        // setPanFileName("None");
-        // setFinancialFileName("None");
     }
 
     const renderFormStep = () => {
@@ -1423,27 +739,6 @@ export default function Dashboard({ navigation }) {
                                 formNumber={'1'}
                                 formHeading={'Personal Information'}
                             />
-                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                                <TouchableOpacity onPress={closeModal} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
-                                    <Text style={{ color: COLORS.primary, marginLeft: 3 }}>Back</Text>
-                                </TouchableOpacity>
-                                {isFormSubmitting ?
-                                    <>
-                                        <ActivityIndicator color={COLORS.primary} size={25} style={{ marginRight: 10 }} />
-                                    </> :
-                                    <>
-                                        <TouchableOpacity onPress={submitPersonalInfo} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text style={{ color: COLORS.primary, marginRight: 5 }}>Save & Next</Text>
-                                            <Ionicons size={25} name={'arrow-forward-circle-outline'} color={COLORS.primary} />
-                                        </TouchableOpacity>
-                                    </>
-                                }
-                            </View>
-                            <Text>Form (1/6)</Text>
-                            <Text style={styles.formTitle}>
-                                Personal Information
-                            </Text> */}
                             <Form rules={personalFormFields}
                                 formData={personalInfoForm}
                                 handleTextChange={handlePersonalInfoTextChange}
@@ -1451,9 +746,6 @@ export default function Dashboard({ navigation }) {
                                 formErrors={formErrors}
                                 saveForm={submitPersonalInfo} />
                         </View>
-                        {/* <View style={styles.formButtonsContainer}>
-                            <Button style={styles.formButton} title="Save" onPress={submitPersonalInfo} />
-                        </View> */}
                     </View>
                 )
                 break;
@@ -1467,21 +759,6 @@ export default function Dashboard({ navigation }) {
                                 formNumber={'2'}
                                 formHeading={'Educational Qualifications'}
                             />
-                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                                <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
-                                    <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity onPress={submitEducationalInfo} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={{ color: COLORS.primary, marginRight: 5 }}>Next</Text>
-                                    <Ionicons size={25} name={'arrow-forward-circle-outline'} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            </View>
-                            <Text>Form (2/6)</Text>
-                            <Text style={styles.formTitle}>
-                                Educational Qualifications
-                            </Text> */}
                             <Form rules={educationalFormFields}
                                 formData={educationalInfoFormData}
                                 handleTextChange={handleEducationalInfoTextChange}
@@ -1491,9 +768,6 @@ export default function Dashboard({ navigation }) {
                                 isUploading={isUploading}
                                 createPreview={createPreview} />
                         </View>
-                        {/* <View style={styles.formButtonsContainer}>
-                            <Button style={{ marginLeft: 15, ...styles.formButton }} title="Save" onPress={submitEducationalInfo} />
-                        </View> */}
                     </View>
                 )
                 break;
@@ -1508,21 +782,6 @@ export default function Dashboard({ navigation }) {
                                 formNumber={'3'}
                                 formHeading={'PAN Card Details'}
                             />
-                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                                <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
-                                    <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity onPress={submitPanInfo} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={{ color: COLORS.primary, marginRight: 5 }}>Next</Text>
-                                    <Ionicons size={25} name={'arrow-forward-circle-outline'} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            </View>
-                            <Text>Form (3/6)</Text>
-                            <Text style={styles.formTitle}>
-                                PAN Card Details
-                            </Text> */}
                             <Form rules={panFormFields}
                                 formData={panInfoData}
                                 handleTextChange={handlePanInfoTextChange}
@@ -1533,9 +792,6 @@ export default function Dashboard({ navigation }) {
                                 createPreview={createPreview}
                             />
                         </View>
-                        {/* <View style={styles.formButtonsContainer}>
-                            <Button style={{ marginLeft: 15, ...styles.formButton }} filled title="Save" onPress={submitPanInfo} />
-                        </View> */}
                     </View>
                 )
                 break;
@@ -1550,21 +806,6 @@ export default function Dashboard({ navigation }) {
                                 formNumber={'4'}
                                 formHeading={'Aadhar Card Details'}
                             />
-                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                                <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
-                                    <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity onPress={submitAadharInfo} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={{ color: COLORS.primary, marginRight: 5 }}>Save & Next</Text>
-                                    <Ionicons size={25} name={'arrow-forward-circle-outline'} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            </View>
-                            <Text>Form (4/6)</Text>
-                            <Text style={styles.formTitle}>
-                                Aadhar Card Details
-                            </Text> */}
                             <Form rules={aadharFormFields}
                                 formData={aadharInfoData}
                                 handleTextChange={handleAadharInfoTextChange}
@@ -1575,9 +816,6 @@ export default function Dashboard({ navigation }) {
                                 createPreview={createPreview}
                             />
                         </View>
-                        {/* <View style={styles.formButtonsContainer}>
-                            <Button style={{ marginLeft: 15, ...styles.formButton }}  title="Save" onPress={submitAadharInfo} />
-                        </View> */}
                     </View>
                 )
                 break;
@@ -1592,21 +830,7 @@ export default function Dashboard({ navigation }) {
                                 formNumber={'5'}
                                 formHeading={'Agreement Form'}
                             />
-                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                                <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
-                                    <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity onPress={submitAgreementInfo} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={{ color: COLORS.primary, marginRight: 5 }}>Save & Next</Text>
-                                    <Ionicons size={25} name={'arrow-forward-circle-outline'} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            </View>
-                            <Text>Form (5/6)</Text>
-                            <Text style={styles.formTitle}>
-                                Agreement Form
-                            </Text> */}
+                            
                             <Form rules={agreementFormFields}
                                 formData={agreementInfoData}
                                 selectFile={selectAgreement}
@@ -1618,9 +842,6 @@ export default function Dashboard({ navigation }) {
                                 createPreview={createPreview}
                             />
                         </View>
-                        {/* <View style={styles.formButtonsContainer}>
-                            <Button style={{ marginLeft: 15, ...styles.formButton }}  title="Save" onPress={submitAgreementInfo} />
-                        </View> */}
                     </View>
                 )
             }
@@ -1634,21 +855,6 @@ export default function Dashboard({ navigation }) {
                                 formNumber={'6'}
                                 formHeading={'Financial Information'}
                             />
-                            {/* <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
-                                <TouchableOpacity onPress={() => setStep(step - 1)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
-                                    <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Back</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity onPress={submitFinancialInfo} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Text style={{ color: COLORS.primary, marginRight: 5 }}>Save</Text>
-                                    <Ionicons size={25} name={'checkmark-circle-outline'} color={COLORS.primary} />
-                                </TouchableOpacity>
-                            </View>
-                            <Text>Form (6/6)</Text>
-                            <Text style={styles.formTitle}>
-                                Financial Information
-                            </Text> */}
                             <Form rules={financialFormFields}
                                 handleTextChange={handleFinancialInfoTextChange}
                                 formData={financialInfoData}
@@ -1791,7 +997,6 @@ export default function Dashboard({ navigation }) {
             setIsPreviewVisible(true);
         }
         else {
-            // Alert.alert("Error", 'Please select a valid file type');
             showToast('Please select a valid file type','normal');
 
         }
@@ -1808,11 +1013,8 @@ export default function Dashboard({ navigation }) {
         setTimeout(() => {
             setProgress(userDashboardInfo["Percentage Complete"] / 100);
         }, 500);
-        // verifyToken();
         console.log("useEffect Loaded");
-        // getFormFields();
         console.log("Form fields Fetched?", `${formFields.personalDetails ? "TRUE" : "FALSE"}`);
-        // console.log("dashboard info at dashboard:", userDashboardInfo);
     }, []);
 
     return (
@@ -1840,7 +1042,6 @@ export default function Dashboard({ navigation }) {
                         <TouchableOpacity onPress={closePreviewModal} style={{ alignSelf: 'flex-end', marginBottom: 10 }}>
                             <Ionicons size={25} name={'close-circle-outline'} color={COLORS.primary} />
                         </TouchableOpacity>
-                        {/* <Text style={{ fontSize: 20, color: COLORS.primary }}>filename.pdf</Text> */}
                         <View style={{ flex: 1 }}>
                             {imageResource !== '' &&
                                 <>
@@ -1856,7 +1057,6 @@ export default function Dashboard({ navigation }) {
 
                             {pdfResource &&
                                 <>
-                                    {/* <Text style={styles.title}>Agreement.pdf</Text> */}
                                     <View style={{ backgroundColor: '#ccc', padding: 10, borderRadius: 10 }}>
 
                                         {isPreviewLoading && <ActivityIndicator color={COLORS.primary} size={40} style={{}} />}
@@ -1868,12 +1068,6 @@ export default function Dashboard({ navigation }) {
                                                 console.log(`loaded ${numberOfPages}`);
                                                 setIsPreviewLoading(false);
                                             }}
-                                            // onLoadProgress={(precent) => {
-                                            //     console.log("percent:", precent);
-                                            //     if (precent === 1) {
-                                            //         // setIsPreviewLoading(false);
-                                            //     }
-                                            // }}
                                             onError={(error) => {
                                                 console.log(`Error Here:`, error);
                                             }}
@@ -1950,15 +1144,10 @@ export default function Dashboard({ navigation }) {
 
 const styles = StyleSheet.create({
     container: {
-        // backgroundColor: 'cyan',
-        // flex: 1,
+        
         paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
         paddingHorizontal: 8
-
     },
-    // scrollView:{
-    //     paddingVertical: 20
-    // },
     progressText: {
         width: "62%"
     },
@@ -1971,7 +1160,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#A6E0FF',
         borderRadius: 10,
         alignItems: 'center',
-        // width: '100%',
         paddingVertical: 12,
         marginVertical: 10,
         paddingHorizontal: 30,
@@ -1979,12 +1167,10 @@ const styles = StyleSheet.create({
     },
     uploadContainer: {
         flexDirection: 'row',
-        // backgroundColor: '#A6E0FF',
         borderWidth: 2,
         borderColor: '#A6E0FF',
         borderRadius: 10,
         alignItems: 'center',
-        // width: '100%',
         paddingVertical: 16,
         marginTop: 10,
         paddingHorizontal: 20,
@@ -2011,11 +1197,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 10,
         borderRadius: 10,
-        // borderColor: 'gray',
-        // borderWidth: 2
     },
     listContainer: {
-        // backgroundColor: 'cyan',
         width: '100%',
         height: '51%',
         marginTop: 10,
@@ -2024,7 +1207,6 @@ const styles = StyleSheet.create({
         color: COLORS.secondary,
         fontSize: 30,
         marginRight: 5,
-        // marginHorizontal: 10
     },
     username: {
         color: COLORS.primary,
@@ -2035,7 +1217,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginTop: 25,
         marginBottom: 15,
-        // backgroundColor: 'cyan',
         alignItems: 'baseline',
     },
     formTitle: {
@@ -2046,32 +1227,16 @@ const styles = StyleSheet.create({
     formButtonsContainer: {
         flexDirection: 'row', width: '100%',
         alignItems: 'center',
-        // backgroundColor: 'red',
         justifyContent: 'flex-end',
         marginBottom: 10
     },
     form: {
         justifyContent: 'space-between',
-        // backgroundColor: '#ddd',
         height: '100%'
     },
     input: {
-        // marginHorizontal: 1,
         marginBottom: 15,
-        // height: 50,
         backgroundColor: 'white',
-        // borderRadius: 12,
-        // borderColor: '#ddd',
-        // borderWidth: 0.4,
-        // padding: 12,
-        // shadowColor: '#000',
-        // shadowOffset: {
-        //     width: 0,
-        //     height: 1,
-        // },
-        // shadowOpacity: 0.2,
-        // shadowRadius: 1.41,
-        // elevation: 3,
     },
     label: {
         fontSize: 16,
@@ -2088,15 +1253,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.2,
         borderRadius: 12,
         padding: 12,
-        // shadowColor: '#000',
-        // shadowOffset: {
-        //     width: 0,
-        //     height: 1,
-        // },
-        // shadowOpacity: 0.2,
-        // shadowRadius: 1.41,
-
-        // elevation: 2,
     },
     item: {
         padding: 17,

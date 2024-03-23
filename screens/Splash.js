@@ -2,7 +2,6 @@ import { View, StyleSheet, StatusBar, Image } from 'react-native'
 import React, { useContext, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import COLORS from '../constants/colors'
-import { rotateData, startImageRotateFunction } from '../utils/Animations'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { BASE_URL } from '../utils/APIConstants';
 import axios from 'axios';
@@ -52,7 +51,6 @@ export default function Splash({ navigation }) {
                         console.log("user info saved at splash");
                         console.log('token verified');
                         fetchUserDashboard();
-                        // navigation.navigate('Dashboard');
                         console.log('redirected to Dashboard!');
                     }
 
@@ -104,35 +102,12 @@ export default function Splash({ navigation }) {
         setTimeout(() => {
             verifyToken();
         }, 2500);
-        // startImageRotateFunction(10000, 1);
     }, [])
-
-    // let rotateValueHolder = new Animated.Value(0);
-
-    // const startImageRotateFunction = () => {
-    //     rotateValueHolder.setValue(0);
-    //     Animated.timing(rotateValueHolder, {
-    //         toValue: 1,
-    //         duration: 10000,
-    //         easing: Easing.linear,
-    //         useNativeDriver: false,
-    //     }).start(() => startImageRotateFunction());
-    // };
-
-    // const rotateData = rotateValueHolder.interpolate({
-    //     inputRange: [0, 1],
-    //     outputRange: ['0deg', '360deg'],
-    // });
 
     return (
         <LinearGradient style={{ flex: 1 }} colors={[COLORS.secondary, COLORS.primary]}>
             {StatusBar.setBarStyle('light-content', true)}
             <View style={styles.container}>
-                {/* <Animated.Image style={{
-                    width: 120,
-                    height: 120,
-                    transform: [{ rotate: rotateData }]
-                }} source={require('../assets/LogoIcon.png')} /> */}
                 <Image style={{
                     width: 130,
                     height: 130,

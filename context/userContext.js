@@ -37,7 +37,6 @@ const UserProvider = ({ children }) => {
 
         axios.request(config)
             .then((response) => {
-                // console.log(JSON.stringify(response.data));
                 setFormFields(response.data.data);
             })
             .catch((error) => {
@@ -61,20 +60,9 @@ const UserProvider = ({ children }) => {
                 if (response.data.status.statusCode === 1) {
                     console.log("dashboard info fetched from context fn.");
                     saveUserDashboardinfo(response.data.data);
-                    // setLoading(false);
-                    // navigation.navigate('Dashboard');
                 }
                 else {
                     console.log(JSON.stringify(response.data));
-                    // setLoading(false);
-                    // toast.show("Please try again (LOGIN)!", {
-                    //     type: "normal",
-                    //     placement: "bottom",
-                    //     duration: 3000,
-                    //     offset: 50,
-                    //     animationType: "slide-in",
-                    //     swipeEnabled: false
-                    // });
                 }
             })
             .catch((error) => {
@@ -85,7 +73,6 @@ const UserProvider = ({ children }) => {
     useEffect(() => {
         getFormFields();
     }, [])
-
 
     return (
         <UserContext.Provider value={{ user, saveUserData, removeUserData, formFields, userDashboardInfo, saveUserDashboardinfo, removeUserDashboardInfo, fetchUserDashboard }}>
