@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, StatusBar, Image, TextInput, Keyboard, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, StatusBar, Image, Keyboard, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import COLORS from '../constants/colors'
 import Button from './Button';
@@ -6,8 +6,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { useToast } from 'react-native-toast-notifications';
 import OTPTextInput from 'react-native-otp-textinput'
 import axios from 'axios';
-import { BASE_URL } from '../utils/APIConstants';
-
+import { BASE_URL,BASE_AUTH_URL } from '../utils/APIConstants';
+import { TextInput } from 'react-native-paper';
 
 export default function ForgotPassword({ navigation }) {
     let otpInput = useRef(null);
@@ -59,7 +59,7 @@ export default function ForgotPassword({ navigation }) {
             let data = JSON.stringify({
                 "email": email
             });
-            let url = `${BASE_URL}/forget-password/generate-otp`
+            let url = `${BASE_AUTH_URL}/forget-password/generate-otp`
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -136,7 +136,7 @@ export default function ForgotPassword({ navigation }) {
             let data = JSON.stringify({
                 "email": email
             });
-            let url = `${BASE_URL}/forget-password/generate-otp`
+            let url = `${BASE_AUTH_URL}/forget-password/generate-otp`
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -162,7 +162,7 @@ export default function ForgotPassword({ navigation }) {
                         setLoading(false);
                     }
                     else if (response.data.status.statusCode === 1) {
-                        console.log(JSON.stringify(response.data));
+                        console.log('error',JSON.stringify(response.data));
                         console.log("Email provided:", email);
                         setLoading(false);
                         setSlide(slide + 1);
@@ -219,7 +219,7 @@ export default function ForgotPassword({ navigation }) {
                 "email": email,
                 "otp": otp
             });
-            let url = `${BASE_URL}/forget-password/validate-otp`
+            let url = `${BASE_AUTH_URL}/forget-password/validate-otp`
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -290,7 +290,7 @@ export default function ForgotPassword({ navigation }) {
                 "email": email,
                 "password": newPassword
             });
-            let url = `${BASE_URL}/forget-password/change-password`
+            let url = `${BASE_AUTH_URL}/forget-password/change-password`
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -399,7 +399,7 @@ export default function ForgotPassword({ navigation }) {
 
     return (
         <View style={styles.container}>
-            {StatusBar.setBarStyle('dark-content', true)}
+            <StatusBar backgroundColor={"#fff"} barStyle={"dark-content"} />
             <Image resizeMode='center' style={styles.logo} source={require('../assets/LogoBlack.png')}></Image>
             {/* <Text style={styles.email}>rohan.rana@resotechsolutions.com</Text> */}
             {slide === 1 &&
@@ -407,10 +407,28 @@ export default function ForgotPassword({ navigation }) {
                     <Text style={styles.heading}>Forgot password</Text>
                     <Text>Enter your registered Email Id in order to proceed with the password updation process</Text>
                     <View style={styles.formContainer}>
-                        <TextInput style={styles.input} value={email} placeholder='Eg: john.doe@resotechsolutions.com' onChangeText={setEmail} />
-                        {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+                        {/* <TextInput style={styles.input} value={email} placeholder='Eg: john.doe@resotechsolutions.com' onChangeText={setEmail} /> */}
+                        <TextInput
+                            label="Email"
+                            value={email}
+                            mode={'outlined'}
+                            placeholder='john.doe@resotechsolutions.com'
+                            outlineStyle={{
+                                borderRadius: 12,
+                                borderColor: errors.email ? 'red' : '#6237A0'
+                            }}
+                            style={{ backgroundColor: 'white' }}
+                            textColor='#28104E'
+                            selectionColor='#6237a0'
+                            activeOutlineColor="#6237a0"
+                            onChangeText={text => setEmail(text)}
+                        />
+                        {errors.email && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Email is required!</Text></View>}
                     </View>
-                    {loading ? <ActivityIndicator color={COLORS.primary} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <Button style={styles.submitButton} filled title="Get OTP" onPress={handleEmailSubmit} />}
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 18, alignSelf: 'flex-end' }} /> :
+                        <TouchableOpacity style={styles.loginButton} onPress={handleEmailSubmit}>
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Continue</Text>
+                        </TouchableOpacity>}
                 </>
             }
             {slide === 2 &&
@@ -418,24 +436,46 @@ export default function ForgotPassword({ navigation }) {
                     <Text style={styles.heading}>Enter OTP</Text>
                     <Text>Please enter the OTP sent to provided Email Id. If not received, click Resend.</Text>
                     <View style={styles.formContainer}>
-                        <TextInput style={{ ...styles.input, marginBottom: 5 }} editable={false} selectTextOnFocus={false} value={email} />
+                        {/* <TextInput style={{ ...styles.input, marginBottom: 5 }} editable={false} selectTextOnFocus={false} value={email} /> */}
+                        <TextInput
+                            label="Email"
+                            value={email}
+                            mode={'outlined'}
+                            editable={false}
+                            // placeholder='john.doe@resotechsolutions.com'
+                            outlineStyle={{
+                                borderRadius: 12,
+                                borderColor: '#6237A0'
+                            }}
+                            style={{ backgroundColor: 'white' }}
+                            textColor='#28104E'
+                            selectionColor='#6237a0'
+                            activeOutlineColor="#6237a0"
+                        // onChangeText={text => setEmail(text)}
+                        />
                         {/* <TextInput style={styles.input} keyboardType='numeric' maxLength={6} value={otp} placeholder='Eg: 123456' onChangeText={setOtp} /> */}
 
 
-                        <OTPTextInput ref={e => (otpInput = e)} textInputStyle={{ marginBottom: 20, width: 48 }} handleTextChange={setOtp} inputCount={6} autoFocus={true} tintColor={COLORS.primary} />
+                        <OTPTextInput ref={e => (otpInput = e)} textInputStyle={{ marginBottom: 20, width: 40 }} handleTextChange={setOtp} inputCount={6} autoFocus={true} tintColor={'#6237a0'} />
 
 
-                        {errors.otp ? <Text style={styles.errorText}>{errors.otp}</Text> : null}
+                        {errors.otp && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>Enter a valid OTP!</Text></View>}
                         <View style={{ flexDirection: 'row' }}><Text>Not received? </Text>
                             <TouchableOpacity onPress={resendOtp} disabled={isActive}>
-                                <Text style={{ color: isActive ? 'gray' : COLORS.primary, fontWeight: '500' }}>Resend</Text>
+                                <Text style={{ color: isActive ? 'gray' : "#330066", fontWeight: '500' }}>Resend</Text>
                             </TouchableOpacity>
                             <Text> after {formatTime(timer)}</Text>
                         </View>
                     </View>
-                    {loading ? <ActivityIndicator color={COLORS.primary} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <View style={{ flexDirection: 'row', alignSelf: 'flex-end' }}>
-                        <Button style={styles.backButton} filled title="Back" onPress={() => setSlide(slide - 1)} />
-                        <Button style={styles.submitButton} filled title="Submit" onPress={handleOtpSubmit} />
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginTop: 12 }}>
+                        {/* <Button style={styles.backButton} filled title="Back" onPress={() => setSlide(slide - 1)} /> */}
+                        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.replace('Login')}>
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Back</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ ...styles.loginButton, marginLeft: 10 }} onPress={handleOtpSubmit}>
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Submit</Text>
+                        </TouchableOpacity>
+                        {/* <Button style={styles.submitButton} filled title="Submit" onPress={handleOtpSubmit} /> */}
                     </View>}
                 </>
             }
@@ -445,20 +485,69 @@ export default function ForgotPassword({ navigation }) {
                     <Text style={styles.heading}>Reset your password</Text>
                     <Text style={{ alignSelf: 'flex-start' }}>Please enter and confirm your new password</Text>
                     <View style={styles.formContainer}>
-                        <TextInput style={styles.input} editable={false} selectTextOnFocus={false} value={email} />
-                        <View style={styles.newPasswordContainer}>
-                            <TextInput style={styles.inputPassword} secureTextEntry={!isPasswordVisible} value={newPassword} placeholder='New Password' onChangeText={setNewPassword} />
+                        {/* <TextInput style={styles.input} editable={false} selectTextOnFocus={false} value={email} /> */}
+                        <TextInput
+                            label="Email"
+                            value={email}
+                            mode={'outlined'}
+                            editable={false}
+                            // placeholder='john.doe@resotechsolutions.com'
+                            outlineStyle={{
+                                borderRadius: 12,
+                                borderColor: '#6237A0'
+                            }}
+                            style={{ backgroundColor: 'white' }}
+                            textColor='#28104E'
+                            selectionColor='#6237a0'
+                            activeOutlineColor="#6237a0"
+                        // onChangeText={text => setEmail(text)}
+                        />
+                        {/* <View style={styles.newPasswordContainer}> */}
+                        {/* <TextInput style={styles.inputPassword} secureTextEntry={!isPasswordVisible} value={newPassword} placeholder='New Password' onChangeText={setNewPassword} />
                             <View style={styles.eyeContainer}>
                                 <TouchableOpacity onPress={togglePasswordVisibility}>
                                     <Ionicons size={20} name={isPasswordVisible ? 'eye-off' : 'eye'} color='#061621' />
                                 </TouchableOpacity>
-                            </View>
-                        </View>
-                        {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
-                        <TextInput style={styles.input} value={confirmPassword} secureTextEntry={true} placeholder='Confirm Password' onChangeText={setConfirmPassword} />
-                        {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}{errors.passwordsSame ? <Text style={{ color: 'red' }}>{errors.passwordsSame}</Text> : null}
+                            </View> */}
+                        <TextInput
+                            label="New Password"
+                            value={newPassword}
+                            secureTextEntry={true}
+                            mode={'outlined'}
+                            outlineStyle={{
+                                borderRadius: 12,
+                                borderColor: errors.email ? 'red' : '#6237A0'
+                            }}
+                            style={{ backgroundColor: 'white', marginTop: 12 }}
+                            textColor='#28104E'
+                            selectionColor='#6237a0'
+                            activeOutlineColor="#6237a0"
+                            onChangeText={text => setNewPassword(text)}
+                        />
+                        {/* </View> */}
+                        {/* {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null} */}
+                        {errors.newPassword && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>{errors.newPassword}</Text></View>}
+                        {/* <TextInput style={styles.input} value={confirmPassword} secureTextEntry={true} placeholder='Confirm Password' onChangeText={setConfirmPassword} /> */}
+                        <TextInput
+                            label="Confirm Password"
+                            value={confirmPassword}
+                            secureTextEntry={true}
+                            mode={'outlined'}
+                            outlineStyle={{
+                                borderRadius: 12,
+                                borderColor: errors.email ? 'red' : '#6237A0'
+                            }}
+                            style={{ backgroundColor: 'white', marginTop: 12 }}
+                            textColor='#28104E'
+                            selectionColor='#6237a0'
+                            activeOutlineColor="#6237a0"
+                            onChangeText={text => setConfirmPassword(text)}
+                        />
+                        {errors.confirmPassword ? <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>{errors.confirmPassword}</Text></View> : null}{errors.passwordsSame ? <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>{errors.passwordsSame}</Text></View> : null}
                     </View>
-                    {loading ? <ActivityIndicator color={COLORS.primary} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <Button style={styles.submitButton} filled title="Submit" onPress={handlePasswordSubmit} />}
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <TouchableOpacity style={styles.loginButton} onPress={handlePasswordSubmit}>
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Submit</Text>
+                    </TouchableOpacity>}
                 </>
             }
 
@@ -469,15 +558,15 @@ export default function ForgotPassword({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: 'cyan',
+        backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20
     },
     heading: {
         alignSelf: 'flex-start',
-        fontSize: 25,
-        color: COLORS.primary,
+        fontSize: 24,
+        color: "#6237a0",
         marginBottom: 10
     },
     logo: {
@@ -511,7 +600,7 @@ const styles = StyleSheet.create({
     },
     errorText: {
         color: '#de8704',
-        marginBottom: 10,
+        marginBottom: 0,
     },
     formContainer: {
         // backgroundColor: 'cyan',
@@ -579,4 +668,14 @@ const styles = StyleSheet.create({
     underlineStyleHighLighted: {
         borderColor: "#03DAC6",
     },
+    loginButton: {
+        width: 100,
+        alignSelf: 'flex-end',
+        backgroundColor: '#6237A0',
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 0,
+        borderRadius: 12
+    }
 })

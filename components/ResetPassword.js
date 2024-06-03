@@ -1,13 +1,14 @@
-import { View, Text, StyleSheet, Image, TextInput, Keyboard, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native'
+import { View, Text, StyleSheet, Image, Keyboard, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native'
 import React, { useContext, useEffect, useState } from 'react'
 import COLORS from '../constants/colors'
 import Button from './Button'
 import { Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { UserContext } from '../context/userContext'
-import { BASE_URL } from '../utils/APIConstants'
+import { BASE_ONBOARD_URL, BASE_URL } from '../utils/APIConstants'
 import axios from 'axios';
 import { useToast } from 'react-native-toast-notifications'
+import { TextInput } from 'react-native-paper'
 
 
 export default function ResetPassword({ navigation }) {
@@ -63,23 +64,29 @@ export default function ResetPassword({ navigation }) {
 
     const fetchAPI = () => {
         setLoading(true);
-        // console.log("reset info sent!");
-        let url = `${BASE_URL}/update-password`
+        console.log("reset info sent!", user);
+        let url = `${BASE_ONBOARD_URL}/update-password`
+
+        // console.log('username', user.userId,
+        //     'password', newPassword,
+        //     'token', user.userToken
+        // )
+
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
-            url: 'https://appdev.resotechsolutions.in/onboarding/update-password',
+            url: url,
             headers: {
-                'username': user.username,
+                'username': user.userName,
                 'password': newPassword,
-                'token': user.token
+                'token': user.userToken
             }
         };
 
         axios.request(config)
             .then((response) => {
                 if (response.data.status.statusCode !== 1) {
-                    console.log(JSON.stringify(response.data));
+                    // console.log(JSON.stringify(response.data));
                     toast.show("Please try again!", {
                         type: "normal",
                         placement: "bottom",
@@ -93,7 +100,7 @@ export default function ResetPassword({ navigation }) {
                     navigation.navigate('Login');
                 }
                 else {
-                    console.log(JSON.stringify(response.data));
+                    // console.log(JSON.stringify(response.data));
                     toast.show("Password updated!", {
                         type: "success",
                         placement: "bottom",
@@ -104,7 +111,7 @@ export default function ResetPassword({ navigation }) {
                     });
                     setLoading(false);
                     logout();
-                    navigation.navigate('Login');
+                    navigation.replace('Login');
                 }
 
             })
@@ -132,26 +139,58 @@ export default function ResetPassword({ navigation }) {
 
     return (
         <View style={styles.container}>
-            {StatusBar.setBarStyle('dark-content', true)}
+            <StatusBar barStyle={'dark-content'} backgroundColor={'#FFFFFF'} />
             <Image resizeMode='center' style={styles.logo} source={require('../assets/LogoBlack.png')}></Image>
             <Text style={styles.email}>{user.email}</Text>
             <Text style={styles.heading}>Reset your password</Text>
             <Text>You need to reset your password because this is the first time you are signing in, or because your password has expired.</Text>
             <View style={styles.formContainer}>
-                <View style={styles.newPasswordContainer}>
-                    <TextInput style={styles.inputPassword} secureTextEntry={!isPasswordVisible} value={newPassword} placeholder='New Password' onChangeText={setNewPassword} />
-                    <View style={styles.eyeContainer}>
+                {/* <View style={styles.newPasswordContainer}> */}
+                    {/* <TextInput style={styles.inputPassword} secureTextEntry={!isPasswordVisible} value={newPassword} placeholder='New Password' onChangeText={setNewPassword} /> */}
+                    <TextInput
+                        label="New Password"
+                        value={newPassword}
+                        secureTextEntry={true}
+                        mode={'outlined'}
+                        outlineStyle={{
+                            borderRadius: 12,
+                            borderColor: errors.username ? 'red' : '#6237A0'
+                        }}
+                        style={{ backgroundColor: 'white' }}
+                        textColor='#28104E'
+                        selectionColor='#6237a0'
+                        activeOutlineColor="#6237a0"
+                        onChangeText={text => setNewPassword(text)}
+                    />
+                    {/* <View style={styles.eyeContainer}>
                         <TouchableOpacity onPress={togglePasswordVisibility}>
                             <Ionicons size={20} name={isPasswordVisible ? 'eye-off' : 'eye'} color='#061621' />
                         </TouchableOpacity>
-                    </View>
-                </View>
+                    </View> */}
+                {/* </View> */}
                 {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null}
-                <TextInput style={styles.input} value={confirmPassword} secureTextEntry={true} placeholder='Confirm Password' onChangeText={setConfirmPassword} />
+                {/* <TextInput style={styles.input} value={confirmPassword} secureTextEntry={true} placeholder='Confirm Password' onChangeText={setConfirmPassword} /> */}
+                <TextInput
+                        label="Confirm Password"
+                        value={confirmPassword}
+                        secureTextEntry={true}
+                        mode={'outlined'}
+                        outlineStyle={{
+                            borderRadius: 12,
+                            borderColor: errors.username ? 'red' : '#6237A0'
+                        }}
+                        style={{ backgroundColor: 'white',marginTop: 10 }}
+                        textColor='#28104E'
+                        selectionColor='#6237a0'
+                        activeOutlineColor="#6237a0"
+                        onChangeText={text => setConfirmPassword(text)}
+                    />
                 {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}{errors.passwordsSame ? <Text style={{ color: 'red' }}>{errors.passwordsSame}</Text> : null}
             </View>
 
-            {loading ? <ActivityIndicator color={COLORS.primary} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <Button style={styles.formButton} filled title="Submit" onPress={handleSubmit} />}
+            {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>Submit</Text>
+            </TouchableOpacity>}
 
         </View>
     )
@@ -160,7 +199,7 @@ export default function ResetPassword({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // backgroundColor: 'cyan',
+        backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20
@@ -168,7 +207,7 @@ const styles = StyleSheet.create({
     heading: {
         alignSelf: 'flex-start',
         fontSize: 25,
-        color: COLORS.primary,
+        color: '#6237a0',
         marginBottom: 10
     },
     logo: {
@@ -251,4 +290,14 @@ const styles = StyleSheet.create({
         shadowRadius: 1.41,
         elevation: 3,
     },
+    button: {
+        width: 100,
+        alignSelf: 'flex-end',
+        backgroundColor: '#6237A0',
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 0,
+        borderRadius: 12
+    }
 })

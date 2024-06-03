@@ -11,20 +11,20 @@ export default function FormHeader(props) {
     let formNumber = props.formNumber;
     let formHeading = props.formHeading;
     return (
-        <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+        <View style={{}}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, }}>
                 <TouchableOpacity onPress={backFunction} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={COLORS.primary} />
-                    <Text style={{ color: COLORS.primary, marginLeft: 3 }}>Back</Text>
+                    <Ionicons size={25} name={'arrow-back-circle-outline'} color={'#6237a0'} />
+                    <Text style={{ color: '#6237a0', marginLeft: 3 }}>Back</Text>
                 </TouchableOpacity>
                 {isFormSubmitting ?
                     <>
-                        <ActivityIndicator color={COLORS.primary} size={25} style={{ marginRight: 10 }} />
+                        <ActivityIndicator color={'#6237a0'} size={25} style={{ marginRight: 10 }} />
                     </> :
                     <>
                         <TouchableOpacity onPress={nextFunction} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Text style={{ color: COLORS.primary, marginRight: 5 }}>Save & Next</Text>
-                            <Ionicons size={25} name={'arrow-forward-circle-outline'} color={COLORS.primary} />
+                            <Text style={{ color: '#6237a0', marginRight: 5 }}>Save & Next</Text>
+                            <Ionicons size={25} name={'arrow-forward-circle-outline'} color={'#6237a0'} />
                         </TouchableOpacity>
                     </>
                 }
@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
     formTitle: {
         fontSize: 25,
         marginTop: 4,
-        color: COLORS.primary
+        color: '#330066'
     },
 })

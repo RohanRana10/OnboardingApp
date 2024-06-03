@@ -1,4 +1,4 @@
-import { View, Modal, Text, StyleSheet, Platform, StatusBar, SafeAreaView, ScrollView, TouchableOpacity, Dimensions, Image, ActivityIndicator } from 'react-native';
+import { View, Modal, Text, StyleSheet, Platform, StatusBar, ScrollView, TouchableOpacity, Dimensions, Image, ActivityIndicator } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import COLORS from '../constants/colors';
 import * as Progress from 'react-native-progress';
@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { UserContext } from '../context/userContext';
-import { BASE_URL } from '../utils/APIConstants';
+import { BASE_ONBOARD_URL } from '../utils/APIConstants';
 import { useToast } from 'react-native-toast-notifications';
 import axios from 'axios';
 import Form from '../components/Form';
@@ -16,6 +16,7 @@ import FormHeader from '../components/FormHeader';
 import Pdf from 'react-native-pdf';
 import Toast from "react-native-toast-notifications";
 import { useRef } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Dashboard({ navigation }) {
 
@@ -120,7 +121,7 @@ export default function Dashboard({ navigation }) {
         // Validate TEXT_INPUT fields
         let errors = {};
         for (const rule of rules) {
-            if (rule.field === 'TEXT_INPUT' && rule.data.isRequired && !formData[rule.data.name] || rule.field === 'TEXT_INPUT' && rule.data.maxLength && formData[rule.data.name] && rule.data.maxLength < formData[rule.data.name].length || rule.field === 'UPLOAD_BUTTON' && rule.data.isRequired && !formData[rule.data.name] || rule.field === 'DROPDOWN' && rule.data.isRequired && !formData[rule.data.name]) {
+            if (rule.field === 'TEXT_INPUT' && rule.data.isRequired && !formData[rule.data.name] || rule.field === 'TEXT_INPUT' && rule.data.maxLength && formData[rule.data.name] && rule.data.maxLength < formData[rule.data.name].length || rule.field === 'TEXT_INPUT' && rule.data.minLength && formData[rule.data.name] && rule.data.minLength > formData[rule.data.name].length || rule.field === 'UPLOAD_BUTTON' && rule.data.isRequired && !formData[rule.data.name] || rule.field === 'DROPDOWN' && rule.data.isRequired && !formData[rule.data.name]) {
                 errors[rule.data.name] = rule.data.badMessage;
             }
         }
@@ -135,7 +136,7 @@ export default function Dashboard({ navigation }) {
         //validate email
         if (rules.some(rule => rule.data.name === 'email' && formData[rule.data.name] && !checkEmail(formData[rule.data.name]))) {
             // Alert.alert('Error', 'Please enter a valid email');
-            showToast('Please enter a valid email','success');
+            showToast('Please enter a valid email', 'success');
             return false;
         }
 
@@ -150,8 +151,8 @@ export default function Dashboard({ navigation }) {
         console.log("personal info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(personalFormFields, personalInfoForm)) {
-            let url = `${BASE_URL}/update-details`
-            console.log("Presonal Data:", personalInfoForm) // Log the entered values
+            let url = `${BASE_ONBOARD_URL}/update-details`
+            console.log("Personal Data:", personalInfoForm) // Log the entered values
             let data = JSON.stringify({ ...personalInfoForm });
 
             let config = {
@@ -159,7 +160,7 @@ export default function Dashboard({ navigation }) {
                 maxBodyLength: Infinity,
                 url: url,
                 headers: {
-                    'token': user.token,
+                    'token': user.userToken,
                     'Content-Type': 'application/json'
                 },
                 data: data
@@ -193,7 +194,7 @@ export default function Dashboard({ navigation }) {
         console.log("Educational info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(educationalFormFields, educationalInfoFormData)) {
-            let url = `${BASE_URL}/update-education`
+            let url = `${BASE_ONBOARD_URL}/update-education`
             let data = JSON.stringify({
                 ...educationalInfoFormData,
                 gradMemoUrl: educationalInfoFormData?.gradMemoUrl?.path,
@@ -206,7 +207,7 @@ export default function Dashboard({ navigation }) {
                 maxBodyLength: Infinity,
                 url: url,
                 headers: {
-                    'token': user.token,
+                    'token': user.userToken,
                     'Content-Type': 'application/json'
                 },
                 data: data
@@ -221,8 +222,9 @@ export default function Dashboard({ navigation }) {
                         setStep((prev) => prev + 1);
                     }
                     else {
+                        console.log(response.data.status);
                         setIsFormSubmitting(false);
-                        showToast("Please try again later", 'normal');
+                        showToast(`${response.data.status.statusMessage}!`, 'normal');
                     }
                 })
                 .catch((error) => {
@@ -240,7 +242,7 @@ export default function Dashboard({ navigation }) {
         console.log("PAN info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(panFormFields, panInfoData)) {
-            let url = `${BASE_URL}/save-document`;
+            let url = `${BASE_ONBOARD_URL}/save-document`;
             let data = JSON.stringify({
                 "path": panInfoData?.path,
                 "number": panInfoData?.panNumber,
@@ -251,7 +253,7 @@ export default function Dashboard({ navigation }) {
                 maxBodyLength: Infinity,
                 url: url,
                 headers: {
-                    'token': user.token,
+                    'token': user.userToken,
                     'Content-Type': 'application/json'
                 },
                 data: data
@@ -268,7 +270,7 @@ export default function Dashboard({ navigation }) {
                     else {
                         setIsFormSubmitting(false);
                         showToast('Please try again later', 'normal');
-                        
+
                     }
                 })
                 .catch((error) => {
@@ -287,7 +289,7 @@ export default function Dashboard({ navigation }) {
         console.log("Aadhar info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(aadharFormFields, aadharInfoData)) {
-            let url = `${BASE_URL}/save-document`;
+            let url = `${BASE_ONBOARD_URL}/save-document`;
             let data = JSON.stringify({
                 "path": aadharInfoData?.path,
                 "number": aadharInfoData?.aadharNumber,
@@ -298,7 +300,7 @@ export default function Dashboard({ navigation }) {
                 maxBodyLength: Infinity,
                 url: url,
                 headers: {
-                    'token': user.token,
+                    'token': user.userToken,
                     'Content-Type': 'application/json'
                 },
                 data: data
@@ -309,19 +311,19 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        showToast('Aadhar Information updated',"success");
+                        showToast('Aadhar Information updated', "success");
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        showToast('Please try again later',"normal");
+                        showToast('Please try again later', "normal");
 
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    showToast('Please try again later',"normal");
+                    showToast('Please try again later', "normal");
 
                 });
         } else {
@@ -334,7 +336,7 @@ export default function Dashboard({ navigation }) {
         console.log("Agreement info submitted!");
         setIsFormSubmitting(true);
         if (ValidateForm(agreementFormFields, agreementInfoData)) {
-            let url = `${BASE_URL}/save-document`;
+            let url = `${BASE_ONBOARD_URL}/save-document`;
             let data = JSON.stringify({
                 "path": agreementInfoData?.path,
                 "name": agreementInfoData?.name
@@ -344,7 +346,7 @@ export default function Dashboard({ navigation }) {
                 maxBodyLength: Infinity,
                 url: url,
                 headers: {
-                    'token': user.token,
+                    'token': user.userToken,
                     'Content-Type': 'application/json'
                 },
                 data: data
@@ -354,18 +356,18 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        showToast('Agreement Information updated',"success");
+                        showToast('Agreement Information updated', "success");
                         setStep((prev) => prev + 1);
                     }
                     else {
                         setIsFormSubmitting(false);
-                        showToast('Please try again',"normal");
+                        showToast('Please try again', "normal");
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    showToast('Please try again',"normal");
+                    showToast('Please try again', "normal");
 
                 });
         } else {
@@ -376,9 +378,9 @@ export default function Dashboard({ navigation }) {
 
     const submitFinancialInfo = () => {
         console.log("Financial info submitted!");
-        setIsFormSubmitting(false);
+        setIsFormSubmitting(true);
         if (ValidateForm(financialFormFields, financialInfoData)) {
-            let url = `${BASE_URL}/update-bank`
+            let url = `${BASE_ONBOARD_URL}/update-bank`
             let data = JSON.stringify({
                 ...financialInfoData,
                 bank: financialInfoData?.bank?.path,
@@ -388,7 +390,7 @@ export default function Dashboard({ navigation }) {
                 maxBodyLength: Infinity,
                 url: url,
                 headers: {
-                    'token': user.token,
+                    'token': user.userToken,
                     'Content-Type': 'application/json'
                 },
                 data: data
@@ -398,19 +400,19 @@ export default function Dashboard({ navigation }) {
                     if (response.data.status.statusCode === 1) {
                         setIsFormSubmitting(false);
                         fetchUserDashboard();
-                        showToast('Financial Information updated',"success");
+                        showToast('Financial Information updated', "success");
                         closeModal();
                     }
                     else {
                         setIsFormSubmitting(false);
-                        showToast('Please try again',"normal");
+                        showToast('Please try again', "normal");
 
                     }
                 })
                 .catch((error) => {
                     console.log(error);
                     setIsFormSubmitting(false);
-                    showToast('Please try again',"normal");
+                    showToast('Please try again', "normal");
 
                 });
         } else {
@@ -424,8 +426,9 @@ export default function Dashboard({ navigation }) {
             setIsUploading(true);
             const document = await DocumentPicker.getDocumentAsync({
             });
-            if (!document.canceled) {
+            if (!document.canceled && document.assets[0].mimeType == 'application/pdf' || document.assets[0].mimeType == 'image/jpeg' || document.assets[0].mimeType == 'application/jpg') {
                 // Create Blob object
+                console.log("File Type:", document.assets[0].mimeType);
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
                 let fileInfo = {
                     name: document.assets[0].name,
@@ -442,13 +445,13 @@ export default function Dashboard({ navigation }) {
                     name: document.assets[0].name,
                 });
                 data.append('name', name);
-                let url = `${BASE_URL}/upload-document`;
+                let url = `${BASE_ONBOARD_URL}/upload-document`;
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
                     url: url,
                     headers: {
-                        'token': user.token,
+                        'token': user.userToken,
                         'Content-Type': 'multipart/form-data',
                     },
                     data: data
@@ -462,17 +465,18 @@ export default function Dashboard({ navigation }) {
                         console.log(path);
                         fileInfo.path = path;
                         setEducationalInfoFormData({ ...educationalInfoFormData, [name]: fileInfo });
-                        showToast('Upload successful','success');
+                        showToast('Upload successful', 'success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        showToast('Please try uploading again','normal');
+                        showToast('Please try uploading again', 'normal');
                     });
             }
             else {
                 setIsUploading(false);
                 console.log("Returning without file");
+                showToast('This file type is not supported!', 'warning');
             }
         } catch (error) {
             setIsUploading(false);
@@ -485,7 +489,7 @@ export default function Dashboard({ navigation }) {
             setIsUploading(true);
             const document = await DocumentPicker.getDocumentAsync({
             });
-            if (!document.canceled) {
+            if (!document.canceled && document.assets[0].mimeType == 'application/pdf' || document.assets[0].mimeType == 'image/jpeg' || document.assets[0].mimeType == 'application/jpg') {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
                 let fileInfo = {
@@ -503,13 +507,13 @@ export default function Dashboard({ navigation }) {
                     name: document.assets[0].name,
                 });
                 data.append('name', name);
-                let url = `${BASE_URL}/upload-document`;
+                let url = `${BASE_ONBOARD_URL}/upload-document`;
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
                     url: url,
                     headers: {
-                        'token': user.token,
+                        'token': user.userToken,
                         'Content-Type': 'multipart/form-data',
                     },
                     data: data
@@ -520,18 +524,19 @@ export default function Dashboard({ navigation }) {
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setPanInfoData({ ...panInfoData, [name]: fileInfo, path: path, name: name });
-                        showToast('Upload Successful','success');
+                        showToast('Upload Successful', 'success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        showToast('Please try uploading again','normal');
+                        showToast('Please try uploading again', 'normal');
 
                     });
             }
             else {
                 setIsUploading(false);
                 console.log("Returning without file");
+                showToast('This file type is not supported!', 'warning');
             }
         } catch (error) {
             setIsUploading(false);
@@ -544,7 +549,7 @@ export default function Dashboard({ navigation }) {
             setIsUploading(true);
             const document = await DocumentPicker.getDocumentAsync({
             });
-            if (!document.canceled) {
+            if (!document.canceled && document.assets[0].mimeType == 'application/pdf' || document.assets[0].mimeType == 'image/jpeg' || document.assets[0].mimeType == 'application/jpg') {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
                 let fileInfo = {
@@ -562,13 +567,13 @@ export default function Dashboard({ navigation }) {
                     name: document.assets[0].name,
                 });
                 data.append('name', name);
-                let url = `${BASE_URL}/upload-document`;
+                let url = `${BASE_ONBOARD_URL}/upload-document`;
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
                     url: url,
                     headers: {
-                        'token': user.token,
+                        'token': user.userToken,
                         'Content-Type': 'multipart/form-data',
                     },
                     data: data
@@ -579,17 +584,18 @@ export default function Dashboard({ navigation }) {
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setAadharInfoData({ ...aadharInfoData, [name]: fileInfo, path: path, name: name });
-                        showToast('Upload Successful','success');
+                        showToast('Upload Successful', 'success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        showToast('Please try uploading again','normal');
+                        showToast('Please try uploading again', 'normal');
                     });
             }
             else {
                 setIsUploading(false);
                 console.log("Returning without file");
+                showToast('This file type is not supported!', 'warning');
             }
         } catch (error) {
             console.error('Error picking document:', error);
@@ -598,9 +604,10 @@ export default function Dashboard({ navigation }) {
 
     const selectAgreement = async (name) => {
         try {
+            setIsUploading(true);
             const document = await DocumentPicker.getDocumentAsync({
             });
-            if (!document.canceled) {
+            if (!document.canceled && document.assets[0].mimeType == 'application/pdf' || document.assets[0].mimeType == 'image/jpeg' || document.assets[0].mimeType == 'application/jpg') {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
                 let fileInfo = {
@@ -618,13 +625,13 @@ export default function Dashboard({ navigation }) {
                     name: document.assets[0].name,
                 });
                 data.append('name', name);
-                let url = `${BASE_URL}/upload-document`;
+                let url = `${BASE_ONBOARD_URL}/upload-document`;
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
                     url: url,
                     headers: {
-                        'token': user.token,
+                        'token': user.userToken,
                         'Content-Type': 'multipart/form-data',
                     },
                     data: data
@@ -635,20 +642,21 @@ export default function Dashboard({ navigation }) {
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setAgreementInfoData({ ...agreementInfoData, [name]: fileInfo, path: path, name: name });
-                        showToast('Upload Successful','success');
+                        showToast('Upload Successful', 'success');
 
-                        
+
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        showToast('Please try uploading again','normal');
+                        showToast('Please try uploading again', 'normal');
 
                     });
             }
             else {
                 setIsUploading(false);
                 console.log("Returning without file");
+                showToast('This file type is not supported!', 'warning');
             }
         } catch (error) {
             console.error('Error picking document:', error);
@@ -660,7 +668,7 @@ export default function Dashboard({ navigation }) {
             setIsUploading(true);
             const document = await DocumentPicker.getDocumentAsync({
             });
-            if (!document.canceled) {
+            if (!document.canceled && document.assets[0].mimeType == 'application/pdf' || document.assets[0].mimeType == 'image/jpeg' || document.assets[0].mimeType == 'application/jpg') {
                 // Create Blob object
                 const blob = await fetch(document.assets[0].uri).then(response => response.blob());
                 let fileInfo = {
@@ -678,13 +686,13 @@ export default function Dashboard({ navigation }) {
                     name: document.assets[0].name,
                 });
                 data.append('name', name);
-                let url = `${BASE_URL}/upload-document`;
+                let url = `${BASE_ONBOARD_URL}/upload-document`;
                 let config = {
                     method: 'post',
                     maxBodyLength: Infinity,
                     url: url,
                     headers: {
-                        'token': user.token,
+                        'token': user.userToken,
                         'Content-Type': 'multipart/form-data',
                     },
                     data: data
@@ -698,17 +706,18 @@ export default function Dashboard({ navigation }) {
                         console.log(path);
                         fileInfo.path = path;
                         setFinancialInfoData({ ...financialInfoData, [name]: fileInfo });
-                        showToast('Upload Successful','success');
+                        showToast('Upload Successful', 'success');
                     })
                     .catch((error) => {
                         setIsUploading(false);
                         console.log(error);
-                        showToast('Please try uploading again','normal');
+                        showToast('Please try uploading again', 'normal');
                     });
             }
             else {
                 setIsUploading(false);
                 console.log("Returning without file");
+                showToast('This file type is not supported!', 'warning');
             }
         } catch (error) {
             console.error('Error picking document:', error);
@@ -830,7 +839,7 @@ export default function Dashboard({ navigation }) {
                                 formNumber={'5'}
                                 formHeading={'Agreement Form'}
                             />
-                            
+
                             <Form rules={agreementFormFields}
                                 formData={agreementInfoData}
                                 selectFile={selectAgreement}
@@ -880,6 +889,9 @@ export default function Dashboard({ navigation }) {
                         }}>Your details have been received!</Text>
                         <View style={{ width: '50%', margin: 20 }}>
                             <Button filled title="Close" onPress={closeModal} />
+                            <TouchableOpacity style={styles.button}>
+                                <Text>Close</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
                 );
@@ -907,17 +919,17 @@ export default function Dashboard({ navigation }) {
         } catch (error) {
             console.log("error while removing token", error);
         }
-        navigation.navigate('Login');
+        navigation.replace('Login');
     }
 
     const handleLogout = () => {
-        let url = `${BASE_URL}/logout`;
+        let url = `${BASE_ONBOARD_URL}/logout`;
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: url,
             headers: {
-                'token': user.token
+                'token': user.userToken
             }
         };
         axios.request(config)
@@ -961,13 +973,13 @@ export default function Dashboard({ navigation }) {
     }
 
     const fetchUserData = () => {
-        let url = `${BASE_URL}/landing`;
+        let url = `${BASE_ONBOARD_URL}/landing`;
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: url,
             headers: {
-                'token': user.token
+                'token': user.userToken
             }
         };
 
@@ -997,7 +1009,7 @@ export default function Dashboard({ navigation }) {
             setIsPreviewVisible(true);
         }
         else {
-            showToast('Please select a valid file type','normal');
+            showToast('Please select a valid file type', 'normal');
 
         }
     }
@@ -1015,7 +1027,8 @@ export default function Dashboard({ navigation }) {
         }, 500);
         console.log("useEffect Loaded");
         console.log("Form fields Fetched?", `${formFields.personalDetails ? "TRUE" : "FALSE"}`);
-    }, []);
+        // console.log("Form fields Fetched?", `${formFields.personalDetails}`);
+    }, [userDashboardInfo]);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -1079,48 +1092,46 @@ export default function Dashboard({ navigation }) {
                 </View>
             </Modal>
 
-            {StatusBar.setBarStyle('dark-content', true)}
-            <View style={styles.headingContainer}>
-                <Text style={styles.welcomeText}>Welcome</Text>
-                <Text style={{ textTransform: 'capitalize', ...styles.username }}>{userDashboardInfo.firstName ? userDashboardInfo.firstName : 'User'}!</Text>
-            </View>
-            <View style={styles.progressSection}>
-                <View style={styles.progressText}>
-                    <Text style={{ fontSize: 16, color: COLORS.secondary, marginVertical: 4 }}>
-                        Ready to dive into your new role?
-                    </Text>
-                    <Text style={{ fontSize: 16, color: COLORS.secondary }}>
-                        Let's streamline your onboarding by completing your profile.
-                    </Text>
+            <StatusBar barStyle={'dark-content'} backgroundColor={'#f2e6ff'} />
+            <View style={{ backgroundColor: '#f2e6ff', paddingVertical: 15, borderBottomLeftRadius: 60, paddingHorizontal: 20, borderBottomRightRadius: 60 }}>
+                <View style={styles.headingContainer}>
+                    <Text style={styles.welcomeText}>Welcome</Text>
+                    <Text style={{ textTransform: 'capitalize', ...styles.username }}>{userDashboardInfo.firstName ? userDashboardInfo.firstName : 'User'}!</Text>
                 </View>
-                <View>
-                    <Progress.Circle
-                        showsText={true}
-                        thickness={9}
-                        textStyle={{
-                            fontSize: 25,
-                            fontWeight: '600'
-                        }}
-                        color='#f59433'
-                        borderWidth={1}
-                        strokeCap='round'
-                        progress={progress}
-                        size={115} />
+                <View style={styles.progressSection}>
+                    <View style={styles.progressText}>
+                        <Text style={{ fontSize: 14 }}>
+                            Ready to dive into your new role?
+                        </Text>
+                        <Text style={{ fontSize: 14 }}>
+                            Let's streamline your onboarding by completing your profile.
+                        </Text>
+                    </View>
+                    <View>
+                        <Progress.Circle
+                            showsText={true}
+                            thickness={9}
+                            textStyle={{
+                                fontSize: 25,
+                                fontWeight: '600'
+                            }}
+                            color='#330066'
+                            borderWidth={1}
+                            strokeCap='round'
+                            progress={progress}
+                            size={115} />
+                    </View>
                 </View>
             </View>
             <View style={styles.uploadContainer}>
-                <Text style={{
-                    fontSize: 16,
-                    fontWeight: '600',
-                }}>
-                    Start Completing Details
+                <Text style={{ fontSize: 15, fontWeight: '500', }}>
+                    Complete Required Details
                 </Text>
                 <View>
                     <TouchableOpacity onPress={openFormsModal} style={styles.uploadButton}>
                         <Text style={{ color: 'white', paddingHorizontal: 4 }}>UPLOAD</Text>
                     </TouchableOpacity>
                 </View>
-
             </View>
 
             <View style={styles.listContainer}>
@@ -1131,9 +1142,14 @@ export default function Dashboard({ navigation }) {
                     <RectangleCard title={'Aadhar Card Details'} isComplete={userDashboardInfo["Aadhar Card"]} />
                     <RectangleCard title={'Agreement Form'} isComplete={userDashboardInfo["Agreement"]} />
                     <RectangleCard title={'Financial Information'} isComplete={userDashboardInfo["Bank Details"]} />
-                    <View>
-                        <TouchableOpacity onPress={handleLogout} style={styles.uploadButton}>
-                            <Text style={{ color: 'white', paddingHorizontal: 4, alignSelf: 'center' }}>LOGOUT</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 12 }}>
+                        <TouchableOpacity onPress={handleLogout} style={{ backgroundColor: '#330066', padding: 8, borderRadius: 6, width: '45%' }}>
+                            <Text style={{ color: 'white', padding: 8, alignSelf: 'center' }}>LOGOUT</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.replace('Waiting')} style={{
+                            backgroundColor: '#330066', padding: 8, borderRadius: 6, width: '45%'
+                        }}>
+                            <Text style={{ color: 'white', padding: 8, alignSelf: 'center' }}>PROCEED</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -1144,12 +1160,13 @@ export default function Dashboard({ navigation }) {
 
 const styles = StyleSheet.create({
     container: {
-        
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-        paddingHorizontal: 8
+        // paddingTop: 18,
+        backgroundColor: '#fff',
+        // paddingHorizontal: 12,
+        flex: 1
     },
     progressText: {
-        width: "62%"
+        width: "60%"
     },
     formButton: {
         backgroundColor: 'white',
@@ -1167,13 +1184,13 @@ const styles = StyleSheet.create({
     },
     uploadContainer: {
         flexDirection: 'row',
-        borderWidth: 2,
-        borderColor: '#A6E0FF',
+        // borderWidth: 2,
+        // borderColor: '#A6E0FF',
         borderRadius: 10,
         alignItems: 'center',
         paddingVertical: 16,
         marginTop: 10,
-        paddingHorizontal: 20,
+        paddingHorizontal: 12,
         justifyContent: 'space-between'
     },
     listItemButton: {
@@ -1183,40 +1200,44 @@ const styles = StyleSheet.create({
         borderRadius: 6
     },
     uploadButton: {
-        backgroundColor: COLORS.primary,
-        padding: 8,
-        borderRadius: 6
+        backgroundColor: '#330066',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 6,
     },
     progressSection: {
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-between',
         width: '100%',
-        height: '22%',
-        backgroundColor: '#ddd',
+        // backgroundColor: 'gray',
+        // height: '22%',
+        // backgroundColor: '#ddd',
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 10,
+        // paddingHorizontal: 10,
+        // paddingVertical: 10,
         borderRadius: 10,
+        // marginTop: 12
     },
     listContainer: {
         width: '100%',
-        height: '51%',
-        marginTop: 10,
+        height: '70%',
+        // marginTop: 12,
+        paddingHorizontal: 0, backgroundColor: '#fff', marginBottom: 20
     },
     welcomeText: {
         color: COLORS.secondary,
-        fontSize: 30,
+        fontSize: 22,
         marginRight: 5,
     },
     username: {
-        color: COLORS.primary,
-        fontSize: 45,
+        color: '#6237a0',
+        fontSize: 35,
         fontWeight: '600',
     },
     headingContainer: {
         flexDirection: 'row',
-        marginTop: 25,
-        marginBottom: 15,
+        // marginTop: 25,
+        // marginBottom: 15,
         alignItems: 'baseline',
     },
     formTitle: {
@@ -1284,5 +1305,14 @@ const styles = StyleSheet.create({
         height: '80%', // Set the desired height
         resizeMode: 'contain', // or 'contain' for different resize modes
         borderRadius: 10, // Optional: Add borderRadius for a rounded image
+    },
+    button: {
+        width: '100%',
+        backgroundColor: '#6237A0',
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+        borderRadius: 12
     },
 })

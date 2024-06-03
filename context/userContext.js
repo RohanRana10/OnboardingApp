@@ -1,7 +1,7 @@
 import React, { createContext, useState } from 'react'
 import { useEffect } from 'react';
 import axios from 'axios';
-import { BASE_URL } from '../utils/APIConstants';
+import { BASE_URL, BASE_ONBOARD_URL } from '../utils/APIConstants';
 
 const UserContext = createContext();
 
@@ -10,6 +10,13 @@ const UserProvider = ({ children }) => {
     const [user, setUser] = useState({});
     const [userDashboardInfo, setUserDashboardInfo] = useState({});
     const [formFields, setFormFields] = useState({ rohan: "rohan" });
+    const [totalPendingTasks, setPendingTasks] = useState(0);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    const updateRole = (value) => {
+        console.log("role updated");
+        setIsAdmin(value);
+    }
 
     const saveUserData = (data) => {
         setUser(data);
@@ -26,8 +33,13 @@ const UserProvider = ({ children }) => {
         setUser({});
     }
 
+    const updatePendingTasks = (value) => {
+        console.log("pending tasks updated")
+        setPendingTasks(value);
+    }
+
     const getFormFields = () => {
-        let url = `${BASE_URL}/get-headers`
+        let url = `${BASE_ONBOARD_URL}/get-headers`
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
@@ -45,13 +57,13 @@ const UserProvider = ({ children }) => {
     }
 
     const fetchUserDashboard = () => {
-        let url = `${BASE_URL}/landing`;
+        let url = `${BASE_ONBOARD_URL}/landing`;
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
             url: url,
             headers: {
-                'token': user.token
+                'token': user.userToken
             }
         };
 
@@ -75,7 +87,7 @@ const UserProvider = ({ children }) => {
     }, [])
 
     return (
-        <UserContext.Provider value={{ user, saveUserData, removeUserData, formFields, userDashboardInfo, saveUserDashboardinfo, removeUserDashboardInfo, fetchUserDashboard }}>
+        <UserContext.Provider value={{ user, totalPendingTasks, isAdmin, saveUserData, removeUserData, formFields, userDashboardInfo, saveUserDashboardinfo, removeUserDashboardInfo, fetchUserDashboard, updatePendingTasks, updateRole }}>
             {children}
         </UserContext.Provider>
     )

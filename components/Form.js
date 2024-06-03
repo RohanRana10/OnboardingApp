@@ -104,18 +104,19 @@ export default function Form(props) {
                                     onChangeText={(text) => handleTextChange(text, item.data.name)}
                                     keyboardType={item.data.keyboardType ? item.data.keyboardType : 'default'}
                                     // this is used as active border color
-                                    borderColor={formErrors[item.data.name] ? 'red' : COLORS.primary}
+                                    borderColor={'#6237a0'}
                                     // active border height
                                     borderHeight={3}
                                     inputPadding={10}
-                                    labelStyle={{ color: COLORS.primary, fontWeight: '400', fontSize: 15 }}
-                                    inputStyle={{ color: '#6f6f70' }}
+                                    labelStyle={{ color: formErrors[item.data.name] ? 'red' : '#6237a0', fontWeight: '400', fontSize: 15 }}
+                                    inputStyle={{ color: '#6f6f70', fontWeight: '500' }}
                                     // this is used to set backgroundColor of label mask.
                                     // please pass the backgroundColor of your TextInput container.
                                     backgroundColor={'white'}
                                 />
                                 {formErrors[item.data.name] ?
-                                    <Text style={{ color: 'red', marginBottom: 0 }}>{formErrors[item.data.name]}</Text>
+                                    // <Text style={{ color: 'red', marginBottom: 0 }}>{formErrors[item.data.name]}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>{formErrors[item.data.name]}</Text></View>
                                     : <></>
                                 }
                             </>
@@ -149,7 +150,8 @@ export default function Form(props) {
                                     }}
                                 />
                                 {formErrors[item.data.name] ?
-                                    <Text style={{ color: 'red', marginBottom: 10 }}>{formErrors[item.data.name]}</Text>
+                                    // <Text style={{ color: 'red', marginBottom: 10 }}>{formErrors[item.data.name]}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>{formErrors[item.data.name]}</Text></View>
                                     : <></>
                                 }
                             </>
@@ -170,7 +172,7 @@ export default function Form(props) {
                                     </Text>
                                     {isUploading ?
                                         <>
-                                            <ActivityIndicator color={COLORS.primary} size={40} style={{ marginRight: 10 }} />
+                                            <ActivityIndicator color={'#6237a0'} size={40} style={{ marginRight: 10 }} />
                                         </> :
                                         <>
                                             {formData[item.data.name]?.name ? <>
@@ -190,10 +192,10 @@ export default function Form(props) {
                                                 </TouchableOpacity>
                                             </> : <></>}
 
-                                            <TouchableOpacity style={{ width: 100, borderRadius: 8, borderWidth: 1.2, borderColor: formErrors[item.data.name] ? 'red' : COLORS.primary, height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => selectFile(item.data.name)}>
+                                            <TouchableOpacity style={{ width: 100, borderRadius: 8, borderWidth: 1.2, borderColor: formErrors[item.data.name] ? 'red' : '#6237a0', height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => selectFile(item.data.name)}>
                                                 <View style={{ alignItems: 'center', flexDirection: 'row' }}>
-                                                    <Ionicons size={17} name={'share-outline'} color={COLORS.primary} />
-                                                    <Text style={{ color: COLORS.primary, marginLeft: 5 }}>UPLOAD</Text>
+                                                    <Ionicons size={17} name={'share-outline'} color={'#6237a0'} />
+                                                    <Text style={{ color: '#6237a0', marginLeft: 5 }}>UPLOAD</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         </>
@@ -201,7 +203,8 @@ export default function Form(props) {
 
                                 </View>
                                 {formErrors[item.data.name] ?
-                                    <Text style={{ color: 'red', marginBottom: 10 }}>{formErrors[item.data.name]}</Text>
+                                    // <Text style={{ color: 'red', marginBottom: 10 }}>{formErrors[item.data.name]}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>{formErrors[item.data.name]}</Text></View>
                                     : <></>
                                 }
                             </>
@@ -209,7 +212,7 @@ export default function Form(props) {
                             <>
                                 {isDownloading ?
                                     <>
-                                        <ActivityIndicator color={COLORS.primary} size={35} style={{ marginVertical: 5 }} />
+                                        <ActivityIndicator color={'#6237a0'} size={35} style={{ marginVertical: 5 }} />
                                     </> :
                                     <>
                                         <DownloadPDFButton setIsDownloading={setIsDownloading} name={item.data.fileName} pdfUrl={item.data.url} />

@@ -1,14 +1,17 @@
 import { useContext, useState } from 'react';
-import { StyleSheet, StatusBar, Text, View, TextInput, Platform, Image, KeyboardAvoidingView, TouchableOpacity, Keyboard, ActivityIndicator } from 'react-native';
+import { StyleSheet, StatusBar, Text, View, Platform, Image, KeyboardAvoidingView, TouchableOpacity, Keyboard, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient';
 import COLORS from '../constants/colors';
 import Button from '../components/Button'
 import axios from 'axios';
-import { BASE_URL } from '../utils/APIConstants';
+import { BASE_URL, BASE_AUTH_URL, BASE_ONBOARD_URL } from '../utils/APIConstants';
 import { useToast } from 'react-native-toast-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../context/userContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { TextInput } from 'react-native-paper';
+
 
 export default function Login({ navigation }) {
 
@@ -63,7 +66,7 @@ export default function Login({ navigation }) {
 
     const login = () => {
         setLoading(true);
-        let url = `${BASE_URL}/login`;
+        let url = `${BASE_AUTH_URL}/login`;
 
         let config = {
             method: 'post',
@@ -89,17 +92,25 @@ export default function Login({ navigation }) {
                     setLoading(false);
                 }
                 else {
-                    token = response.data.data.token;
+
+                    token = response.data.data.userToken;
+                    // console.log(token);
                     setToken(token);
                     saveUserData(response.data.data);
-                    console.log("user info saved at login");
+                    console.log("user info saved at login", response.data.data);
 
                     if (!response.data.data.passwordUpdated) {
                         navigation.navigate('ResetPassword');
                     }
                     else {
-                        fetchUserDashboard();
+                        if (response.data.data.onboardingStatus) {
+                            navigation.replace('SectionSelection');
+                        }
+                        else{
+                            fetchUserDashboard();
+                        }
                     }
+                    setLoading(false);
                 }
             })
             .catch((error) => {
@@ -109,7 +120,7 @@ export default function Login({ navigation }) {
     }
 
     const fetchUserDashboard = () => {
-        let url = `${BASE_URL}/landing`;
+        let url = `${BASE_ONBOARD_URL}/landing`;
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
@@ -125,7 +136,8 @@ export default function Login({ navigation }) {
                     console.log("dashboard info at login page fetched :", JSON.stringify(response.data.data));
                     saveUserDashboardinfo(response.data.data);
                     setLoading(false);
-                    navigation.navigate('Dashboard');
+                    navigation.replace('Dashboard');
+                    // navigation.replace('SectionSelection');
                 }
                 else {
                     console.log(JSON.stringify(response.data));
@@ -148,45 +160,71 @@ export default function Login({ navigation }) {
     }
 
     return (
-        <> 
-        
-            <LinearGradient style={{ flex: 1 }} colors={[COLORS.secondary, COLORS.primary]}>
-                {StatusBar.setBarStyle('light-content', true)}
-                <KeyboardAvoidingView behavior='padding' keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} style={styles.container}>
-
-                    <View style={styles.form}>
-                        <Image source={require('../assets/New.gif')} style={styles.upperDial} />
-                        <Image source={require('../assets/New.gif')} style={styles.lowerDial} />
-                        <Image resizeMode='contain' style={styles.image} source={require('../assets/Logo.png')} />
-                        <Text style={styles.label}>Username</Text>
-                        <TextInput style={styles.input} onChangeText={setUsername} value={username} placeholder='Enter username' />
-                        {errors.username ? <Text style={styles.errorText}>{errors.username}</Text> : null}
-                        <Text style={styles.label}>Password</Text>
-                        <View style={styles.passwordContainer}>
+        <>
+            <KeyboardAvoidingView behavior='padding' keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} style={styles.container}>
+                <StatusBar barStyle={'dark-content'} backgroundColor={'#fff'} />
+                <View style={styles.form}>
+                    {/* <Image source={require('../assets/New.gif')} style={styles.upperDial} /> */}
+                    {/* <Image source={require('../assets/New.gif')} style={styles.lowerDial} /> */}
+                    <Image resizeMode='contain' style={styles.image} source={require('../assets/Images/ResotechLogoBlack.png')} />
+                    <View style={styles.middleImageContainer}>
+                        <Image resizeMode='contain' source={require('../assets/Images/MiddleImage.png')} style={styles.middleImage} />
+                    </View>
+                    {/* <Text style={styles.label}>Username</Text> */}
+                    {/* <TextInput style={styles.input} onChangeText={setUsername} value={username} placeholder='Enter username' /> */}
+                    <TextInput
+                        label="Username"
+                        value={username}
+                        mode={'outlined'}
+                        outlineStyle={{
+                            borderRadius: 12,
+                            borderColor: errors.username ? 'red' : '#6237A0'
+                        }}
+                        style={{ backgroundColor: 'white' }}
+                        textColor='#28104E'
+                        selectionColor='#6237a0'
+                        activeOutlineColor="#6237a0"
+                        onChangeText={text => setUsername(text)}
+                    />
+                    {errors.username && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Username is required!</Text></View>}
+                    {/* <Text style={styles.label}>Password</Text> */}
+                    {/* <View style={styles.passwordContainer}>
                             <TextInput style={styles.inputPassword} secureTextEntry={!isPasswordVisible} placeholder='Enter password' value={password} onChangeText={setPassword} />
                             <View style={styles.eyeContainer}>
                                 <TouchableOpacity onPress={togglePasswordVisibility}>
                                     <Ionicons size={20} name={isPasswordVisible ? 'eye-off' : 'eye'} color='#061621' />
                                 </TouchableOpacity>
                             </View>
-                        </View>
-                        {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
-                        <View style={styles.forgotPwdContainer}>
-                            <TouchableOpacity onPress={forgotPassword}>
-                                <Text style={styles.forgotPwdText}>Forgot Password?
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                        {loading ? <ActivityIndicator color={'white'} size={40} style={{ marginTop: 18 }} /> : <Button title="LOGIN"
-                            onPress={handleSubmit}
-                            style={{
-                                marginTop: 18,
-                                width: "100%"
-                            }} />}
+                        </View> */}
+                    <TextInput
+                        label="Password"
+                        value={password}
+                        mode={'outlined'}
+                        secureTextEntry={isPasswordVisible}
+                        right={<TextInput.Icon icon={isPasswordVisible ? "eye" : "eye-off"} color={'#6237A0'} onPress={() => setIsPasswordVisible(prev => !prev)} forceTextInputFocus={false} />}
+                        outlineStyle={{
+                            borderRadius: 12,
+                            borderColor: errors.password ? 'red' : '#6237A0'
+                        }}
+                        style={{ backgroundColor: 'white', marginTop: 10 }}
+                        textColor='#28104E'
+                        selectionColor='#6237a0'
+                        activeOutlineColor="#6237a0"
+                        onChangeText={text => setPassword(text)}
+                    />
+                    {errors.password && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Password is required!</Text></View>}
+                    <View style={styles.forgotPwdContainer}>
+                        <TouchableOpacity onPress={forgotPassword}>
+                            <Text style={styles.forgotPwdText}>Forgot Password?
+                            </Text>
+                        </TouchableOpacity>
                     </View>
-                </KeyboardAvoidingView>
-
-            </LinearGradient>
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 18 }} /> :
+                        <TouchableOpacity style={styles.loginButton} onPress={handleSubmit}>
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>LOGIN</Text>
+                        </TouchableOpacity>}
+                </View>
+            </KeyboardAvoidingView>
         </>
     );
 }
@@ -195,7 +233,8 @@ const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
         flex: 1,
-        paddingHorizontal: 20,
+        padding: 20,
+        backgroundColor: '#fff'
     },
     upperDial: {
         position: 'absolute',
@@ -212,8 +251,8 @@ const styles = StyleSheet.create({
         height: 400
     },
     form: {
-        paddingHorizontal: 25,
-        paddingVertical: 28,
+        // paddingHorizontal: 12,
+        // paddingVertical: 28,
         borderRadius: 30,
     },
     label: {
@@ -238,13 +277,14 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     image: {
-        width: 200,
-        height: 80,
+        width: 180,
+        height: 50,
         alignSelf: 'center',
-        marginBottom: 20,
+        alignSelf: 'flex-start',
+        // marginBottom: 20,
     },
     errorText: {
-        color: 'orange',
+        color: 'black',
         marginBottom: 10,
     },
     loginButton: {
@@ -271,6 +311,23 @@ const styles = StyleSheet.create({
         height: 40,
         marginLeft: 5,
         justifyContent: 'center'
-    }
+    },
+    loginButton: {
+        width: '100%',
+        backgroundColor: '#6237A0',
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 10,
+        borderRadius: 12
+    },
+    middleImageContainer: {
+        marginTop: 20
+    },
+    middleImage: {
+        width: '100%',
+        height: 270,
+        // backgroundColor: 'cyan'
+    },
 });
 
