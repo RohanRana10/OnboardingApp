@@ -6,6 +6,8 @@ import { BASE_URL, BASE_ONBOARD_URL } from '../utils/APIConstants';
 import { UserContext } from '../context/userContext';
 import axios from 'axios';
 import { useToast } from 'react-native-toast-notifications';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 export default function Waiting({ navigation }) {
     const toast = useToast();
@@ -79,13 +81,10 @@ export default function Waiting({ navigation }) {
     }
 
     useEffect(() => {
-        console.log("onboarding status:",user.onboardingStatus);
+        console.log("onboarding status:", user.onboardingStatus);
         if (user.onboardingStatus) {
-            setData({onboarded: true})
+            setData({ onboarded: true })
         }
-        // if(user.roles.includes("admin")){
-        //     console.log("Admin found!")
-        // }
     }, [])
 
 
@@ -94,45 +93,36 @@ export default function Waiting({ navigation }) {
             <StatusBar barStyle={'dark-content'} backgroundColor={'#fff'} />
             {!data.onboarded ?
                 <View>
-                    <View style={{ position: 'absolute', padding: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <View style={{ position: 'absolute', padding: wp(4), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: wp(100) }}>
                         <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => navigation.replace('Dashboard')}>
-                            <AntDesign name="back" size={24} color="#6237a0" />
-                            <Text style={{ marginLeft: 10, color: '#6237a0', fontSize: 16 }}>Edit Details</Text>
+                            <AntDesign name="back" size={hp(2.8)} color="#6237a0" />
+                            <Text style={{ marginLeft: wp(2), color: '#6237a0', fontSize: hp(2) }}>Edit Details</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={handleLogout}>
-                            <Text style={{ color: '#330066' }}>LOGOUT</Text>
+                            <Text style={{ color: '#330066', fontSize: hp(2) }}>LOGOUT</Text>
                         </TouchableOpacity>
                     </View>
-                    <View style={{ alignItems: 'center', justifyContent: 'center', height: '90%' }}>
-                        <Image source={require('../assets/Images/search.png')} style={{ width: 60, height: 60 }} />
-                        <Text style={{ paddingHorizontal: 10, textAlign: 'center', color: 'gray', marginTop: 20 }}>Your information has been securely submitted. We will proceed with the next steps once our team has thoroughly reviewed and validated your details.</Text>
+                    <View style={{ alignItems: 'center', justifyContent: 'center', height: hp(80) }}>
+                        <Image source={require('../assets/Images/search.png')} style={{ width: wp(12), height: wp(12) }} />
+                        <Text style={{ paddingHorizontal: wp(4), textAlign: 'center', color: 'gray', marginTop: hp(2.6), fontSize: hp(1.8) }}>Your information has been securely submitted. We will proceed with the next steps once our team has thoroughly reviewed and validated your details.</Text>
                     </View>
                 </View> :
 
                 <View>
-                    {/* <View style={{ position: 'absolute', padding: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => navigation.replace('Dashboard')}>
-                            <AntDesign name="back" size={24} color="#6237a0" />
-                            <Text style={{ marginLeft: 10, color: '#6237a0', fontSize: 16 }}>Edit Details</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={handleLogout}>
-                            <Text style={{ color: '#330066' }}>LOGOUT</Text>
-                        </TouchableOpacity>
-                    </View> */}
-                    <View style={{ alignItems: 'center', justifyContent: 'center', height: '90%' }}>
-                        <Image source={require('../assets/Images/verified.png')} style={{ width: 60, height: 60 }} />
-                        <Text style={{ paddingHorizontal: 10, textAlign: 'center', color: 'gray', marginTop: 20 }}>Your information has been successfully verified.</Text>
+                    <View style={{ alignItems: 'center', justifyContent: 'center', height: hp(80) }}>
+                        <Image source={require('../assets/Images/verified.png')} style={{ width: wp(15), height: wp(15) }} />
+                        <Text style={{ paddingHorizontal: wp(2), textAlign: 'center', color: 'gray', marginTop: hp(2), fontSize: hp(1.8) }}>Your information has been successfully verified.</Text>
 
-                        <TouchableOpacity onPress={() => navigation.replace('SectionSelection')} style={{ backgroundColor: '#330066', width: '90%', padding: 15, alignItems: 'center', justifyContent: 'center', marginTop: 20, borderRadius: 12 }}>
-                            <Text style={{ color: 'white' }}>Get Started</Text>
+                        <TouchableOpacity onPress={() => navigation.replace('SectionSelection')} style={{ backgroundColor: '#330066', width: wp(80), padding: wp(3), alignItems: 'center', justifyContent: 'center', marginTop: hp(2), borderRadius: hp(1.4) }}>
+                            <Text style={{ color: 'white', fontSize: hp(1.8) }}>Get Started</Text>
                         </TouchableOpacity>
                     </View>
 
                 </View>
             }
-            <View style={{ alignItems: 'center', marginBottom: 25, flexDirection: 'row', justifyContent: 'center', position: 'absolute', bottom: 0, width: '100%' }}>
-                <Text style={{ color: "#6237a0", fontSize: 12, marginRight: 10 }}>All Rights Reserved © </Text>
-                <Image resizeMode='contain' source={require('../assets/Images/ResotechLogoBlack.png')} style={{ height: 40, width: 100 }} />
+            <View style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'center', width: wp(100) }}>
+                <Text style={{ color: "#6237a0", fontSize: hp(1.4), marginRight: wp(3) }}>All Rights Reserved © </Text>
+                <Image resizeMode='contain' source={require('../assets/Images/ResotechLogoBlack.png')} style={{ height: hp(5), width: wp(30) }} />
             </View>
         </View>
     )

@@ -5,6 +5,8 @@ import { shareAsync } from 'expo-sharing';
 import { Platform } from 'react-native';
 import COLORS from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 export default function DownloadPDFButton({ pdfUrl, name, setIsDownloading }) {
 
@@ -50,11 +52,11 @@ export default function DownloadPDFButton({ pdfUrl, name, setIsDownloading }) {
 
 
     return (
-        <View>
-            <TouchableOpacity style={{ width: '100%', borderRadius: 8, borderWidth: 1.2, borderColor: COLORS.primary, height: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 20 }} onPress={downloadFromUrl}>
+        <View style={{alignSelf: 'center'}}>
+            <TouchableOpacity style={{ width: wp(92), borderRadius: hp(1), borderWidth: hp(0.2), borderColor: "#6237a0", height: hp(5), justifyContent: 'center', alignItems: 'center', marginBottom: hp(2) }} onPress={downloadFromUrl}>
                 <View style={{ alignItems: 'center', flexDirection: 'row' }}>
-                    <Ionicons size={20} name={'download-outline'} color={COLORS.secondary} />
-                    <Text style={{ color: COLORS.secondary, marginLeft: 5 }}>DOWNLOAD AGREEMENT FORM</Text>
+                    <Ionicons size={hp(3)} name={'download-outline'} color={"#6237a0"} />
+                    <Text style={{ color: "#6237a0", marginLeft: 5, fontSize: hp(1.8) }}>DOWNLOAD AGREEMENT FORM</Text>
                 </View>
             </TouchableOpacity>
         </View>

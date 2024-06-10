@@ -1,5 +1,5 @@
 import { FlatList, Image, Modal, StyleSheet, StatusBar, Text, TouchableOpacity, View, Pressable, Platform, Keyboard, KeyboardAvoidingView, ActivityIndicator, Alert } from 'react-native'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import * as Progress from 'react-native-progress';
@@ -13,17 +13,16 @@ import {
 } from 'react-native-popup-menu';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Divider } from '../../components/ProjectManagement/Divider';
-import { BASE_ONBOARD_URL, BASE_PROJECT_URL } from '../../utils/APIConstants';
+import { BASE_PROJECT_URL } from '../../utils/APIConstants';
 import { useToast } from 'react-native-toast-notifications';
 import { UserContext } from '../../context/userContext';
 import axios from 'axios';
 import filter from 'lodash.filter';
 import Checkbox from 'expo-checkbox';
-
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default function Project({ route }) {
 
-    const URL = 'https://randomuser.me/api/?results=20';
     const toast = useToast();
     const context = useContext(UserContext);
     const { user, isAdmin } = context;
@@ -47,16 +46,15 @@ export default function Project({ route }) {
 
     const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
 
-    // const [toggleCheckBox, setToggleCheckBox] = useState(false);
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [thumbnails, setThumbnails] = useState([]);
-    const [memberList, setMemberList] = useState([]);
 
     const [maxYear, setMaxYear] = useState("");
     const [maxMonth, setMaxMonth] = useState("");
     const [maxDay, setMaxDay] = useState("");
 
     const [submitButtonLoading, setSubmitButtonLoading] = useState(false);
+    const [fetchError, setFetchError] = useState(false);
 
     const validateForm = () => {
         let errors = {};
@@ -78,11 +76,16 @@ export default function Project({ route }) {
     }
 
     const getMemberIds = (project) => {
-        let temp = project.users.map((user) => {
-            return (user.user_id).toString()
-        })
-        console.log('temp', temp);
-        setSelectedMembers(temp);
+        if (project.users == null) {
+            console.log("no users found");
+        }
+        else {
+            let temp = project?.users.map((user) => {
+                return (user.user_id).toString()
+            })
+            console.log('temp', temp);
+            setSelectedMembers(temp);
+        }
     }
 
     const handleDelete = (projectId) => {
@@ -131,36 +134,7 @@ export default function Project({ route }) {
             });
     }
 
-    // let sampleTeam = [
-    //     "https://randomuser.me/api/portraits/thumb/women/61.jpg",
-    //     "https://randomuser.me/api/portraits/thumb/women/12.jpg",
-    //     "https://randomuser.me/api/portraits/thumb/women/8.jpg",
-    //     "https://randomuser.me/api/portraits/thumb/men/88.jpg"
-    // ];
-
-    // let sampleTasks = [
-    //     {
-    //         "id": 1,
-    //         "taskName": "Design Home and Splash Screens",
-    //         "taskDescription": "Task Description sample 1",
-    //         "projectId": 1,
-    //         "status": false,
-    //         "subTasks": null,
-    //         "subTaskCount": 0
-    //     },
-    //     {
-    //         "id": 2,
-    //         "taskName": "Design dashboard Screens",
-    //         "taskDescription": "Task Description sample 1",
-    //         "projectId": 1,
-    //         "status": false,
-    //         "subTasks": null,
-    //         "subTaskCount": 0
-    //     },
-    // ];
-
     const toggleEndDatePicker = () => {
-        // console.log('toggle called');
         setShowEndDatePicker(!showEndDatePicker);
     }
 
@@ -173,7 +147,6 @@ export default function Project({ route }) {
     }
 
     const onEndDateChange = ({ type }, selectedDate) => {
-        // console.log('end date change called')
         if (type == 'set') {
             const currentDate = selectedDate;
             setEnd(currentDate);
@@ -215,8 +188,7 @@ export default function Project({ route }) {
     }
 
     const contains = ({ firstName, lastName, designation }, query) => {
-
-        if (firstName.includes(query) || lastName.includes(query)) {
+        if ((firstName.toLowerCase()).includes(query) || (lastName.toLowerCase()).includes(query)) {
             return true;
         }
         else {
@@ -327,10 +299,17 @@ export default function Project({ route }) {
 
         axios.request(config)
             .then((response) => {
-                console.log(JSON.stringify(response.data.data));
-                setProject(response.data.data);
-                getMemberIds(response.data.data);
-                setLoading(false);
+                console.log("status code:", response.data.status.statusCode);
+                if (response.data.status.statusCode !== 1) {
+                    setFetchError(true);
+                    setLoading(false);
+                }
+                else {
+                    console.log(JSON.stringify(response.data.data));
+                    setProject(response.data.data);
+                    getMemberIds(response.data.data);
+                    setLoading(false);
+                }
 
             })
             .catch((error) => {
@@ -358,10 +337,8 @@ export default function Project({ route }) {
 
     useFocusEffect(
         React.useCallback(() => {
-            // fetchProjects();
             fetchProjectDetails();
             fetchEmployees();
-            // getMemberIds();
             setSearchLoading(true);
         }, [])
     );
@@ -374,7 +351,6 @@ export default function Project({ route }) {
             setSearchData(json.results);
             setFullSearchData(json.results);
             setSearchLoading(false);
-            // console.log(json.results);
         } catch (error) {
             setSearchError(error);
             setSearchLoading(false);
@@ -445,340 +421,352 @@ export default function Project({ route }) {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar backgroundColor={"#fff"} barStyle={'dark-content'} />
-            {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            {loading ? (<View style={{ height: hp(95), justifyContent: 'center', alignItems: 'center' }}>
                 <Image style={{
-                    width: 100,
-                    height: 100,
+                    width: wp(20),
+                    height: wp(20),
                 }} source={require('../../assets/New.gif')} />
-            </View>) : (<View>
-                <View style={{ flexDirection: 'row', width: "100%", justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                    <View style={{ backgroundColor: '#f2e6ff', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 15 }}>
-                        <Text style={{ fontSize: 12 }}>Project</Text>
-                    </View>
-                    <View style={{}}>
-                        <Menu>
-                            <MenuTrigger customStyles={{
-                                triggerWrapper: {
-                                }
-                            }}>
-                                <AntDesign name="setting" size={24} color="black" />
-                            </MenuTrigger>
-                            <MenuOptions customStyles={{
-                                optionsContainer: {
-                                    borderRadius: 10,
-                                    marginTop: 30,
-                                }
-                            }}>
-                                <MenuOption onSelect={() => editProject()}>
-                                    <View style={{ paddingHorizontal: 15, justifyContent: 'space-between', flexDirection: 'row', paddingVertical: 5, alignItems: 'center' }}>
-                                        <Text style={{}}>Edit Project</Text>
-                                        <Feather name="edit-3" size={24} color="#3d7bed" />
+            </View>) : (
+                <View>
+                    {fetchError ? (<View style={{  }}>
+                        <TouchableOpacity style={{ marginRight: wp(2) }} onPress={() => navigation.goBack()}>
+                            <AntDesign name="back" size={hp(3.2)} color="#6237a0" />
+                        </TouchableOpacity>
+                        <View style={{height: hp(90), alignItems: "center", justifyContent: 'center'}}>
+                        <Text>Error loading project!</Text>
+                        <Image style={{ width: wp(13), height: wp(13), marginTop: hp(1)}} source={require('../../assets/Images/server.png')}/>
+                        </View>
+                    </View>) : (<View>
+                        <View style={{ flexDirection: 'row', width: wp(92), justifyContent: 'space-between', alignItems: 'center', marginBottom: hp(1) }}>
 
-                                    </View>
-                                </MenuOption>
-                                <Divider />
-                                {/* handleDelete(projectId) */}
-                                <MenuOption onSelect={() => {
-                                    Alert.alert(
-                                        "Delete Project",
-                                        "Are you sure you want to permanently delete this project?",
-                                        [
-                                            {
-                                                text: "Cancel",
-                                                onPress: () => console.log("Cancel Pressed"),
-                                                style: "cancel"
-                                            },
-                                            {
-                                                text: "OK",
-                                                onPress: () => handleDelete(projectId)
+                            <View style={{ backgroundColor: '#f2e6ff', paddingVertical: hp(1), paddingHorizontal: wp(3), borderRadius: hp(1.5) }}>
+                                <Text style={{ fontSize: hp(1.6) }}>Project</Text>
+                            </View>
+                            <View style={{}}>
+                                {isAdmin &&
+                                    <Menu>
+                                        <MenuTrigger customStyles={{
+                                            triggerWrapper: {
                                             }
-                                        ]
-                                    )
-                                }} >
-                                    <View style={{ paddingHorizontal: 15, justifyContent: 'space-between', flexDirection: 'row', paddingVertical: 5, alignItems: 'center' }}>
-                                        <Text style={{}}>Delete Project</Text>
-                                        <AntDesign name="delete" size={24} color="red" />
-                                    </View>
-                                </MenuOption>
-                            </MenuOptions>
-                        </Menu>
-                    </View>
-                </View>
+                                        }}>
+                                            <AntDesign name="setting" size={hp(3.2)} color="black" />
+                                        </MenuTrigger>
+                                        <MenuOptions customStyles={{
+                                            optionsContainer: {
+                                                borderRadius: hp(1.5),
+                                                marginTop: hp(4),
+                                                width: wp(45),
+                                                // maxWidth: wp(45)
+                                            }
+                                        }}>
+                                            <MenuOption onSelect={() => editProject()}>
+                                                <View style={{ paddingHorizontal: wp(3), justifyContent: 'space-between', flexDirection: 'row', paddingVertical: hp(1), alignItems: 'center' }}>
+                                                    <Text style={{ fontSize: hp(1.8) }}>Edit Project</Text>
+                                                    <Feather name="edit-3" size={hp(3)} color="#3d7bed" />
 
-
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity style={{ marginRight: 8 }} onPress={() => navigation.goBack()}>
-                        {/* <Ionicons name="arrow-back-circle" size={26} color="#6237a0" /> */}
-                        <AntDesign name="back" size={26} color="#6237a0" />
-                    </TouchableOpacity><Text style={styles.heading}>{project.projectName}</Text>
-                </View>
-
-                <Modal visible={isSearchModalVisible} animationType='slide' presentationStyle='pageSheet' onRequestClose={() => setIsSearchModalVisible(false)}>
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        style={{ flex: 1, backgroundColor: 'white' }}
-                    >
-                        <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18 }}>
-                            <Text style={{
-                                color: '#6237A0', fontSize: 24, fontWeight: 'bold',
-                            }}>Add Members</Text>
-                            <TouchableOpacity onPress={() => setIsSearchModalVisible(false)}>
-                                <Text style={{ fontSize: 17, fontWeight: '400' }}>Close</Text>
-                            </TouchableOpacity>
+                                                </View>
+                                            </MenuOption>
+                                            <Divider />
+                                            <MenuOption onSelect={() => {
+                                                Alert.alert(
+                                                    "Delete Project",
+                                                    "Are you sure you want to permanently delete this project?",
+                                                    [
+                                                        {
+                                                            text: "Cancel",
+                                                            onPress: () => console.log("Cancel Pressed"),
+                                                            style: "cancel"
+                                                        },
+                                                        {
+                                                            text: "OK",
+                                                            onPress: () => handleDelete(projectId)
+                                                        }
+                                                    ]
+                                                )
+                                            }} >
+                                                <View style={{ paddingHorizontal: wp(3), justifyContent: 'space-between', flexDirection: 'row', paddingVertical: hp(1), alignItems: 'center' }}>
+                                                    <Text style={{ fontSize: hp(1.8) }}>Delete Project</Text>
+                                                    <AntDesign name="delete" size={hp(3)} color="red" />
+                                                </View>
+                                            </MenuOption>
+                                        </MenuOptions>
+                                    </Menu>
+                                }
+                            </View>
 
                         </View>
-                        <View style={{ marginHorizontal: 15, marginVertical: 18, backgroundColor: 'white', height: '80%' }}>
-                            {searchLoading ? (
-                                <ActivityIndicator size={'large'} color={'#6237a0'} />
-                            ) : (
-                                <View style={{ height: '100%' }}>
-                                    <Searchbar
-                                        placeholder='Search People...'
-                                        autoCapitalize='none'
-                                        autoCorrect={false}
-                                        value={seachQuery}
-                                        onChangeText={(query) => handleSearch(query)}
-                                        style={{ backgroundColor: '#f2e6ff', borderRadius: 10 }}
-                                    />
-                                    {searchError ? (
-                                        <Text style={{ marginTop: 12, alignSelf: 'center' }}>Error Fetching Members!</Text>
+
+
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <TouchableOpacity style={{ marginRight: wp(2) }} onPress={() => navigation.goBack()}>
+                                <AntDesign name="back" size={hp(3.2)} color="#6237a0" />
+                            </TouchableOpacity><Text style={styles.heading}>{project.projectName}</Text>
+                        </View>
+
+                        <Modal visible={isSearchModalVisible} animationType='slide' presentationStyle='pageSheet' onRequestClose={() => setIsSearchModalVisible(false)}>
+                            <KeyboardAvoidingView
+                                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                                style={{ flex: 1, backgroundColor: 'white' }}
+                            >
+                                <View style={{ marginTop: hp(2), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: wp(4), width: wp(92), alignSelf: 'center' }}>
+                                    <Text style={{
+                                        color: '#6237A0', fontSize: hp(3), fontWeight: 'bold',
+                                    }}>Add Members</Text>
+                                    <TouchableOpacity onPress={() => setIsSearchModalVisible(false)}>
+                                        <Text style={{ fontSize: hp(2), fontWeight: '400' }}>Close</Text>
+                                    </TouchableOpacity>
+
+                                </View>
+                                <View style={{ marginHorizontal: wp(4), marginVertical: hp(2), backgroundColor: 'white', height: hp(70) }}>
+                                    {searchLoading ? (
+                                        <ActivityIndicator size={'large'} color={'#6237a0'} />
                                     ) : (
-                                        <FlatList
-                                            style={{ height: '100%', marginVertical: 2, }}
-                                            data={searchData}
-                                            keyExtractor={(item) => item.user_id}
-                                            renderItem={({ item }) => (
+                                        <View style={{}}>
+                                            <Searchbar
+                                                placeholder='Search People...'
+                                                autoCapitalize='none'
+                                                autoCorrect={false}
+                                                value={seachQuery}
+                                                inputStyle={{ fontSize: hp(1.9), alignItems: 'center' }}
+                                                onChangeText={(query) => handleSearch(query)}
+                                                style={{ backgroundColor: '#f2e6ff', borderRadius: hp(2) }}
+                                            />
+                                            {searchError ? (
+                                                <Text style={{ marginTop: hp(4), alignSelf: 'center', fontSize: hp(1.8) }}>Error Fetching Members!</Text>
+                                            ) : (
+                                                <View style={{ backgroundColor: '#fff', maxHeight: hp(70) }}>
+                                                    <FlatList
+                                                        style={{ marginVertical: hp(1) }}
+                                                        data={searchData}
+                                                        keyExtractor={(item) => item.user_id}
+                                                        renderItem={({ item }) => (
 
-                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 
-                                                    <TouchableOpacity onPress={() => {
-                                                        updateMemberList((item?.user_id).toString())
-                                                        updateThubnailList(item?.profile)
-                                                    }} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 12 }}>
-                                                        <Image source={{ uri: item?.profile }} style={{ width: 50, height: 50, borderRadius: 25 }} />
-                                                        <View>
-                                                            <Text style={{ fontSize: 17, marginLeft: 10, fontWeight: '600' }}>{(item?.firstName)} {(item.lastName)}</Text>
-                                                            <Text style={{ fontSize: 14, marginLeft: 10, color: 'gray', fontWeight: '300' }}>{item.designation}</Text>
-                                                        </View>
+                                                                <TouchableOpacity onPress={() => {
+                                                                    updateMemberList((item?.user_id).toString())
+                                                                    updateThubnailList(item?.profile)
+                                                                }} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: wp(2), marginTop: hp(2) }}>
+                                                                    <Image source={{ uri: item?.profile }} style={{ width: wp(13), height: wp(13), borderRadius: 25 }} />
+                                                                    <View>
+                                                                        <Text style={{ fontSize: hp(2.2), marginLeft: wp(2), fontWeight: '600' }}>{(item?.firstName)} {(item.lastName)}</Text>
+                                                                        <Text style={{ fontSize: hp(1.9), marginLeft: wp(2), color: 'gray', fontWeight: '300' }}>{item.designation}</Text>
+                                                                    </View>
 
-                                                    </TouchableOpacity>
-                                                    <View>
-                                                        <Checkbox
-                                                            disabled={false}
-                                                            value={selectedMembers.includes((item?.user_id).toString())}
-                                                            onValueChange={(newValue) => {
-                                                                updateMemberList((item?.user_id).toString())
-                                                                updateThubnailList(item?.profile)
-                                                            }}
-                                                            style={{ marginRight: 10 }}
-                                                            color={'#6237a0'}
-                                                        />
-                                                    </View>
+                                                                </TouchableOpacity>
+                                                                <View>
+                                                                    <Checkbox
+                                                                        disabled={false}
+                                                                        value={selectedMembers.includes((item?.user_id).toString())}
+                                                                        onValueChange={(newValue) => {
+                                                                            updateMemberList((item?.user_id).toString())
+                                                                            updateThubnailList(item?.profile)
+                                                                        }}
+                                                                        style={{ marginRight: wp(4) }}
+                                                                        color={'#6237a0'}
+                                                                    />
+                                                                </View>
+                                                            </View>
+                                                        )}
+                                                    />
                                                 </View>
                                             )}
-                                        />
+                                        </View>
+
                                     )}
                                 </View>
+                                <View style={{ marginHorizontal: wp(4) }}>
+                                    {submitButtonLoading ? (<View style={{ marginTop: 18 }}><ActivityIndicator size={"large"} color={"#6237a0"} /></View>) : (
+                                        <TouchableOpacity style={styles.modalButton} onPress={() => updateProjectMembers()}>
+                                            <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(2) }}>SAVE CHANGES</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            </KeyboardAvoidingView>
+                        </Modal>
 
-                            )}
-                        </View>
-                        <View style={{ marginHorizontal: 15 }}>
-                            {submitButtonLoading ? (<View style={{ marginTop: 18 }}><ActivityIndicator size={"large"} color={"#6237a0"} /></View>) : (
-                                <TouchableOpacity style={styles.modalButton} onPress={() => updateProjectMembers()}>
-                                    <Text style={{ fontWeight: 'bold', color: 'white' }}>SAVE CHANGES</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </KeyboardAvoidingView>
-                </Modal>
+                        <View style={{ marginTop: hp(2), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Progress.Circle size={hp(16)} progress={project["percentage complete"] / 100}
+                                color='#07da63'
+                                unfilledColor='#ddd'
+                                showsText={true}
+                                formatText={() => `${Math.ceil(project["percentage complete"])}%`}
+                                textStyle={{ color: '#28104e', fontWeight: 'bold', fontSize: hp(2.6) }}
+                                strokeCap='round'
+                                borderWidth={0}
+                                thickness={hp(2)}
+                            />
+                            <View style={{ width: wp(45) }}>
+                                <Text style={{ alignSelf: 'center', fontWeight: 'bold', fontSize: hp(1.8) }}>{project?.users?.length} Members</Text>
+                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginTop: hp(1) }}>
+                                    {project?.users.map((user, index) => {
+                                        return <Image key={index} source={{ uri: user.profile ? user.profile : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQf2j71u2ipMbi4uUIcRaomOvJOSPkvvUPWFA&usqp=CAU' }} style={{
+                                            width: wp(12), height: wp(12), borderRadius: hp(50),
+                                            marginLeft: index == 0 ? 0 : -wp(5),
+                                            // borderWidth: 1.5,
+                                            // borderColor: '#6237a0'
+                                        }} />
+                                    })}
+                                    {(isAdmin || user.roles.includes("manager")) &&
+                                        <TouchableOpacity onPress={() => setIsSearchModalVisible(true)}>
+                                            <Image source={require('../../assets/Images/plus.png')} style={{
+                                                width: wp(12), height: wp(12), borderRadius: hp(50),
+                                                marginLeft: -wp(5),
+                                                borderWidth: 2.5,
+                                                borderColor: 'white'
+                                            }} />
+                                        </TouchableOpacity>
+                                    }
 
-                <View style={{ marginTop: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Progress.Circle size={120} progress={project["percentage complete"] / 100}
-                        color='#07da63'
-                        unfilledColor='#ddd'
-                        showsText={true}
-                        formatText={() => `${Math.ceil(project["percentage complete"])}%`}
-                        textStyle={{ color: '#28104e', fontWeight: 'bold' }}
-                        strokeCap='round'
-                        borderWidth={0}
-                        thickness={15}
-                    />
-                    <View style={{ width: '48%' }}>
-                        <Text style={{ alignSelf: 'center', fontWeight: 'bold' }}>{project?.users?.length} Members</Text>
-                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', marginTop: 5 }}>
-                            {project?.users.map((user, index) => {
-                                return <Image key={index} source={{ uri: user.profile ? user.profile : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQf2j71u2ipMbi4uUIcRaomOvJOSPkvvUPWFA&usqp=CAU' }} style={{
-                                    width: 45, height: 45, borderRadius: 25,
-                                    marginLeft: index == 0 ? 0 : -18,
-                                    borderWidth: 1.5,
-                                    borderColor: '#6237a0'
-                                }} />
-                            })}
+
+                                </View>
+                            </View>
+                        </View>
+
+                        <View style={{ marginTop: hp(2), maxHeight: hp(15) }}>
+                            <Text style={{ fontSize: hp(2.5), color: '#28104e', fontWeight: 900 }}>Description</Text>
+                            <Text style={{ marginTop: hp(1), color: '#6237a0', fontWeight: 300, fontSize: hp(1.8), lineHeight: hp(2.5) }}>{project.description}
+                            </Text>
+                        </View>
+
+                        <View style={{ marginTop: hp(2), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Text style={{ fontWeight: 900, fontSize: hp(3.7) }}>Tasks</Text>
                             {(isAdmin || user.roles.includes("manager")) &&
-                                <TouchableOpacity onPress={() => setIsSearchModalVisible(true)}>
+                                <TouchableOpacity onPress={() => {
+                                    setIsAddTaskModalVisible(true);
+                                    separateDate(project.endDate);
+                                    setTitle("");
+                                    setDescription("");
+                                    setEndDate("");
+                                }}>
                                     <Image source={require('../../assets/Images/plus.png')} style={{
-                                        width: 45, height: 45, borderRadius: 25,
-                                        marginLeft: -18,
-                                        borderWidth: 2.5,
-                                        borderColor: 'white'
+                                        width: wp(10),
+                                        height: wp(10),
+                                        borderRadius: hp(50),
+                                        // borderWidth: 2.5,
+                                        // borderColor: 'white'
                                     }} />
                                 </TouchableOpacity>
                             }
-
-
                         </View>
-                    </View>
-                </View>
+                        <Text style={{ marginTop: hp(1), fontSize: hp(1.6), color: 'gray', fontWeight: 300 }}>{project.tasks ? "Select a task to view its associated sub-tasks" : "Start by adding some tasks to this project"}</Text>
+                        <View style={{ height: hp(40), paddingTop: hp(2) }}>
+                            <FlatList
+                                data={project.tasks}//TODO check this after adding tasks
+                                renderItem={({ item, index }) => (
+                                    <TouchableOpacity onPress={() => loadTaskInfo(item.id)} style={{ borderRadius: hp(2), elevation: hp(0.5), marginBottom: hp(1.8), marginHorizontal: wp(1), paddingVertical: hp(1.8), shadowColor: 'black', backgroundColor: 'white', paddingHorizontal: wp(3.5), marginTop: hp(0.3) }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <View style={{ width: wp(62) }}>
+                                                <Text style={{ color: '#6237a0', fontWeight: 500, fontSize: hp(1.8) }}>{item.taskName}</Text>
+                                                <Text style={{ marginTop: hp(0.5), color: 'gray', fontSize: hp(1.6) }}>{item.subTaskCount} Subtasks</Text>
+                                            </View>
+                                            {item.status ? <MaterialIcons name="task-alt" size={hp(3)} color="#07da63" /> : <Entypo name="circle-with-cross" size={hp(3)} color="red" />}
+                                        </View>
+                                    </TouchableOpacity>
+                                )}
+                                keyExtractor={(item, index) => index.toString()}
+                            />
+                        </View>
 
-                <View style={{ marginTop: 12 }}>
-                    <Text style={{ fontSize: 20, color: '#28104e', fontWeight: 900 }}>Description</Text>
-                    <Text style={{ marginTop: 8, color: '#6237a0', lineHeight: 17, fontWeight: 300, }}>{project.description}
-                    </Text>
-                </View>
-
-                <View style={{ marginTop: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Text style={{ fontWeight: 900, fontSize: 25 }}>Tasks</Text>
-                    {(isAdmin || user.roles.includes("manager")) &&
-                        <TouchableOpacity onPress={() => {
-                            setIsAddTaskModalVisible(true);
-                            separateDate(project.endDate);
-                            setTitle("");
-                            setDescription("");
-                            setEndDate("");
-                        }}>
-                            <Image source={require('../../assets/Images/plus.png')} style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 25,
-                                borderWidth: 2.5,
-                                borderColor: 'white'
-                            }} />
-                        </TouchableOpacity>
-                    }
-                </View>
-                <Text style={{ marginTop: 2, fontSize: 13, color: 'gray', fontWeight: 300 }}>{project.tasks ? "Select a task to view its associated sub-tasks" : "Start by adding some tasks to this project"}</Text>
-                <View style={{ height: '39%', paddingTop: 10 }}>
-                    <FlatList
-                        data={project.tasks}//TODO check this after adding tasks
-                        style={{ flexGrow: 1 }}
-                        renderItem={({ item, index }) => (
-                            <TouchableOpacity onPress={() => loadTaskInfo(item.id)} style={{ borderRadius: 15, elevation: 3, marginBottom: 10, marginHorizontal: 2, paddingVertical: 12, shadowColor: 'black', backgroundColor: 'white', paddingHorizontal: 10, marginTop: 2 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <View style={{ width: '90%' }}>
-                                        <Text style={{ color: '#6237a0', fontWeight: 500, fontSize: 15 }}>{item.taskName}</Text>
-                                        <Text style={{ marginTop: 5, color: 'gray', fontSize: 13 }}>{item.subTaskCount} Subtasks</Text>
+                        <Modal
+                            visible={isAddTaskModalVisible}
+                            transparent={true}
+                            animationType="slide"
+                            onRequestClose={() => setIsAddTaskModalVisible(false)}
+                        >
+                            <View
+                                style={styles.modalContainer}
+                                activeOpacity={1}
+                            // onPress={onClose}
+                            >
+                                <View style={styles.modal}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <TouchableOpacity style={{ marginRight: wp(1.5) }} onPress={() => setIsAddTaskModalVisible(false)}>
+                                            <AntDesign name="back" size={hp(3.5)} color="#6237a0" />
+                                        </TouchableOpacity>
+                                        <Text style={styles.modalHeading}>New Task</Text>
                                     </View>
-                                    {item.status ? <MaterialIcons name="task-alt" size={24} color="#07da63" /> : <Entypo name="circle-with-cross" size={24} color="red" />}
-                                </View>
-                            </TouchableOpacity>
-                        )}
-                        keyExtractor={(item, index) => index.toString()}
-                    />
-                </View>
 
-                <Modal
-                    visible={isAddTaskModalVisible}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={() => setIsAddTaskModalVisible(false)}
-                >
-                    <View
-                        style={styles.modalContainer}
-                        activeOpacity={1}
-                    // onPress={onClose}
-                    >
-                        <View style={styles.modal}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <TouchableOpacity style={{ marginRight: 8 }} onPress={() => setIsAddTaskModalVisible(false)}>
-                                    <AntDesign name="back" size={26} color="#6237a0" />
-                                </TouchableOpacity>
-                                <Text style={styles.modalHeading}>New Task</Text>
-                            </View>
-                            {/* <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                            
-                            <TouchableOpacity onPress={() => setIsAddTaskModalVisible(false)}>
-                                <Text style={{ fontSize: 15, fontWeight: '300' }}>Cancel</Text>
-                            </TouchableOpacity>
-                        </View> */}
-                            <TextInput
-                                label="Title"
-                                value={title}
-                                mode={'outlined'}
-                                outlineStyle={{
-                                    borderRadius: 12,
-                                    borderColor: errors.title ? 'red' : '#6237A0'
-                                }}
-                                style={{ backgroundColor: 'white', marginTop: 12 }}
-                                onChangeText={text => setTitle(text)}
-                                textColor='#28104E'
-                                selectionColor='#6237a0'
-                                activeOutlineColor="#6237a0"
-                            />
-                            {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Title is required!</Text></View>}
-
-                            <TextInput
-                                label="Description"
-                                multiline
-                                numberOfLines={4}
-                                value={description}
-                                mode={'outlined'}
-                                outlineStyle={{
-                                    borderRadius: 12,
-                                    borderColor: errors.description ? 'red' : '#6237A0'
-                                }}
-                                style={{ backgroundColor: 'white', marginTop: 10 }}
-                                onChangeText={text => setDescription(text)}
-                                textColor='#28104E'
-                                selectionColor='#6237a0'
-                                activeOutlineColor="#6237a0"
-                            />
-                            {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Description is required!</Text></View>}
-
-                            {showEndDatePicker &&
-                                <DateTimePicker
-                                    mode='date'
-                                    display='spinner'
-                                    value={end}
-                                    onChange={onEndDateChange}
-                                    minimumDate={new Date()}
-                                    maximumDate={new Date(maxYear, maxMonth, maxDay)}
-                                />
-                            }
-
-                            {!showEndDatePicker && <View>
-                                <Pressable onPress={toggleEndDatePicker}>
                                     <TextInput
-                                        label="Deadline"
-                                        value={endDate}
+                                        label="Title"
+                                        value={title}
                                         mode={'outlined'}
-                                        maxLength={12}
                                         outlineStyle={{
-                                            borderRadius: 12,
-                                            borderColor: errors.endDate ? 'red' : '#6237A0'
+                                            borderRadius: hp(1.2),
+                                            borderColor: errors.title ? 'red' : '#6237A0'
                                         }}
-                                        style={{ backgroundColor: 'white', marginTop: 10 }}
-                                        onChangeText={setEndDate}
-                                        editable={false}
+                                        style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
+                                        onChangeText={text => setTitle(text)}
                                         textColor='#28104E'
                                         selectionColor='#6237a0'
                                         activeOutlineColor="#6237a0"
                                     />
-                                </Pressable>
-                                {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>End Date is required!</Text></View>}
+                                    {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Title is required!</Text></View>}
+
+                                    <TextInput
+                                        label="Description"
+                                        multiline
+                                        numberOfLines={4}
+                                        value={description}
+                                        mode={'outlined'}
+                                        outlineStyle={{
+                                            borderRadius: hp(1.2),
+                                            borderColor: errors.description ? 'red' : '#6237A0'
+                                        }}
+                                        style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
+                                        onChangeText={text => setDescription(text)}
+                                        textColor='#28104E'
+                                        selectionColor='#6237a0'
+                                        activeOutlineColor="#6237a0"
+                                    />
+                                    {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Description is required!</Text></View>}
+
+                                    {showEndDatePicker &&
+                                        <DateTimePicker
+                                            mode='date'
+                                            display='spinner'
+                                            value={end}
+                                            onChange={onEndDateChange}
+                                            minimumDate={new Date()}
+                                            maximumDate={new Date(maxYear, maxMonth, maxDay)}
+                                        />
+                                    }
+
+                                    {!showEndDatePicker && <View>
+                                        <Pressable onPress={toggleEndDatePicker}>
+                                            <TextInput
+                                                label="Deadline"
+                                                value={endDate}
+                                                mode={'outlined'}
+                                                maxLength={12}
+                                                outlineStyle={{
+                                                    borderRadius: hp(1.2),
+                                                    borderColor: errors.endDate ? 'red' : '#6237A0'
+                                                }}
+                                                style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
+                                                onChangeText={setEndDate}
+                                                editable={false}
+                                                textColor='#28104E'
+                                                selectionColor='#6237a0'
+                                                activeOutlineColor="#6237a0"
+                                            />
+                                        </Pressable>
+                                        {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>End Date is required!</Text></View>}
+                                    </View>
+                                    }
+
+
+
+                                    {submitButtonLoading ? (<View style={{ marginTop: hp(2) }}><ActivityIndicator size={"large"} color={"#6237a0"} /></View>) : (
+                                        <TouchableOpacity style={styles.modalButton} onPress={handleSubmit}>
+                                            <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(1.8) }}>CREATE</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
                             </View>
-                            }
-
-
-
-                            {submitButtonLoading ? (<View style={{ marginTop: 18 }}><ActivityIndicator size={"large"} color={"#6237a0"} /></View>) : (
-                                <TouchableOpacity style={styles.modalButton} onPress={handleSubmit}>
-                                    <Text style={{ fontWeight: 'bold', color: 'white' }}>CREATE</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </View>
-                </Modal>
-            </View>)}
+                        </Modal>
+                    </View>)}
+                </View>)}
 
         </SafeAreaView>
     )
@@ -787,16 +775,17 @@ export default function Project({ route }) {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        paddingVertical: 20,
-        paddingHorizontal: 18,
+        // flex: 1,
+        height: hp(100),
+        paddingVertical: hp(2),
+        paddingHorizontal: wp(4),
         backgroundColor: '#fff'
     },
     heading: {
         color: '#6237A0',
-        fontSize: 24,
+        fontSize: hp(2.6),
         fontWeight: 'bold',
-        width: '80%'
+        width: wp(75)
 
     },
     modalContainer: {
@@ -806,22 +795,21 @@ const styles = StyleSheet.create({
     },
     modal: {
         backgroundColor: 'white',
-        borderTopLeftRadius: 25,
-        borderTopRightRadius: 25,
-        padding: 18,
+        borderTopLeftRadius: hp(4.5),
+        borderTopRightRadius: hp(4.5),
+        padding: wp(4.5),
     },
     modalButton: {
         backgroundColor: '#6237a0',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
-        borderRadius: 15,
-        marginTop: 18,
+        padding: wp(3),
+        borderRadius: hp(2),
+        marginTop: hp(2),
     },
     modalHeading: {
         color: '#6237A0',
-        fontSize: 24,
+        fontSize: hp(3),
         fontWeight: 'bold',
-        // paddingHorizontal: 18,
     },
 })

@@ -1,5 +1,5 @@
-import { FlatList, StyleSheet, Text, View, TouchableOpacity, Alert, KeyboardAvoidingView, ActivityIndicator } from 'react-native'
-import React from 'react'
+import { FlatList, StyleSheet, Text, View, TouchableOpacity, Alert, KeyboardAvoidingView, ActivityIndicator, ScrollView } from 'react-native'
+import React, { useEffect } from 'react'
 import COLORS from '../constants/colors';
 import { Dropdown } from 'react-native-element-dropdown';
 import DownloadPDFButton from './DownloadButton';
@@ -9,6 +9,7 @@ import Button from './Button';
 // import { TextInput } from 'react-native';
 import { Madoka, Hoshi } from 'react-native-textinput-effects';
 import { useToast } from 'react-native-toast-notifications';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default function Form(props) {
 
@@ -18,7 +19,7 @@ export default function Form(props) {
     let isDownloading = props.isDownloading;
     let setIsDownloading = props.setIsDownloading;
     let formData = props.formData;
-    // console.log("FormData :", formData);
+    // console.log("RULES :", props.rules);
     let handleTextChange = props.handleTextChange;
     let handleDropdownChange = props.handleDropdownChange;
     let selectFile = props.selectFile;
@@ -37,11 +38,12 @@ export default function Form(props) {
         createPreview(data);
         // openPreview();
     }
+
     return (
-        <View style={{ width: '100%', height: '84%', marginTop: 0, paddingVertical: 0 }}>
-            <FlatList removeClippedSubviews={false} style={{ marginVertical: 10 }} data={rules} renderItem={({ item }) => {
+        <View style={{ width: wp(92), height: hp(84), backgroundColor: '#fff', alignItems: 'center' }}>
+            <FlatList contentContainerStyle={{ marginVertical: hp(1.5), paddingBottom: hp(8) }} data={rules} renderItem={({ item }) => {
                 return (
-                    <View>
+                    <View style={{}}>
                         {item.field === 'TEXT_INPUT' ? (
                             // <>
                             //     {/* <Text style={styles.label}>{item.data.label}</Text> */}
@@ -100,15 +102,15 @@ export default function Form(props) {
                                 <Hoshi
                                     label={item.data.label}
                                     value={formData[item.data.name]}
-                                    style={{ marginBottom: 5 }}
+                                    style={{ marginBottom: hp(1), width: wp(92) }}
                                     onChangeText={(text) => handleTextChange(text, item.data.name)}
                                     keyboardType={item.data.keyboardType ? item.data.keyboardType : 'default'}
                                     // this is used as active border color
                                     borderColor={'#6237a0'}
                                     // active border height
                                     borderHeight={3}
-                                    inputPadding={10}
-                                    labelStyle={{ color: formErrors[item.data.name] ? 'red' : '#6237a0', fontWeight: '400', fontSize: 15 }}
+                                    inputPadding={wp(2)}
+                                    labelStyle={{ color: formErrors[item.data.name] ? 'red' : '#6237a0', fontWeight: '400', fontSize: hp(1.8) }}
                                     inputStyle={{ color: '#6f6f70', fontWeight: '500' }}
                                     // this is used to set backgroundColor of label mask.
                                     // please pass the backgroundColor of your TextInput container.
@@ -116,21 +118,17 @@ export default function Form(props) {
                                 />
                                 {formErrors[item.data.name] ?
                                     // <Text style={{ color: 'red', marginBottom: 0 }}>{formErrors[item.data.name]}</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>{formErrors[item.data.name]}</Text></View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(2.5)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.6) }}>{formErrors[item.data.name]}</Text></View>
                                     : <></>
                                 }
                             </>
                         ) : item.field === 'DROPDOWN' ? (
                             <>
-                                {/* <Text style={styles.label}>{item.data.label}</Text> */}
                                 <Dropdown
-                                    style={{ ...styles.dropdown, borderColor: formErrors[item.data.name] ? 'red' : styles.dropdown.borderColor, marginTop: 8, marginBottom: 8 }}
-                                    // labelField={item.data.label}
+                                    style={{ ...styles.dropdown, borderColor: formErrors[item.data.name] ? 'red' : '#6237a0', borderWidth: 1 }}
                                     placeholderStyle={styles.placeholderStyle}
                                     selectedTextStyle={styles.selectedTextStyle}
-                                    // iconStyle={styles.iconStyle}
                                     data={item.data.options}
-                                    // data={JSON.parse(item.data.options.replace(/'/g, '"'))}
                                     maxHeight={300}
                                     labelField="label"
                                     valueField="value"
@@ -139,7 +137,6 @@ export default function Form(props) {
                                     onChange={selection => {
                                         handleDropdownChange(selection.value, item.data.name)
                                         console.log("selected:", selection.value)
-                                        // console.log(":::", formData[item.data.name])
                                     }}
                                     renderItem={item => {
                                         return (
@@ -150,33 +147,32 @@ export default function Form(props) {
                                     }}
                                 />
                                 {formErrors[item.data.name] ?
-                                    // <Text style={{ color: 'red', marginBottom: 10 }}>{formErrors[item.data.name]}</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>{formErrors[item.data.name]}</Text></View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(2.5)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.6) }}>{formErrors[item.data.name]}</Text></View>
                                     : <></>
                                 }
                             </>
                         ) : item.field === 'SUBHEADING' ? (
                             <>
-                                <Text style={{ fontSize: 20, marginBottom: 10, fontWeight: '500', color: 'black' }}>{item.data.label}:</Text>
+                                <Text style={{ fontSize: hp(2.6), marginBottom: hp(1), fontWeight: '500', color: 'black' }}>{item.data.label}:</Text>
                             </>
                         ) : item.field === 'INFORMATION' ? (
                             <>
                                 <Text style={styles.label}>{item.data.title}</Text>
-                                <Text style={{ color: 'gray' }}>{item.data.description}</Text>
+                                <Text style={{ color: 'gray', fontSize: hp(1.6) }}>{item.data.description}</Text>
                             </>
                         ) : item.field === 'UPLOAD_BUTTON' ? (
                             <>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <Text style={{ marginVertical: 20, width: '50%', overflow: 'hidden' }}>File selected: <Text style={{ color: 'gray' }}>
+                                    <Text style={{ marginVertical: hp(2.5), fontSize: hp(1.8), width: wp(50), overflow: 'hidden' }}>File selected: <Text style={{ color: 'gray', fontSize: hp(1.8) }}>
                                         {formData[item.data.name]?.name ? formData[item.data.name]?.name : 'None'}</Text>
                                     </Text>
                                     {isUploading ?
                                         <>
-                                            <ActivityIndicator color={'#6237a0'} size={40} style={{ marginRight: 10 }} />
+                                            <ActivityIndicator color={'#6237a0'} size={'large'} style={{ marginRight: hp(2) }} />
                                         </> :
                                         <>
                                             {formData[item.data.name]?.name ? <>
-                                            {/* {console.log(formData)} */}
+                                                {/* {console.log(formData)} */}
                                                 <TouchableOpacity style={{}} onPress={() => {
                                                     // console.log(`Preview for ${formData[item.data.name]?.path ? formData[item.data.name]?.path : formData?.path}`)
                                                     let data = {
@@ -185,17 +181,17 @@ export default function Form(props) {
                                                         type: formData[item.data.name]?.type
                                                     };
                                                     showPreview(data);
-                                                    }}>
+                                                }}>
                                                     <View style={{ alignItems: 'center', flexDirection: 'row' }}>
-                                                        <Text style={{ color: 'orange', marginLeft: 5 }}>Preview</Text>
+                                                        <Text style={{ color: 'orange', marginRight: hp(0.5), fontSize: hp(1.8) }}>Preview</Text>
                                                     </View>
                                                 </TouchableOpacity>
                                             </> : <></>}
 
-                                            <TouchableOpacity style={{ width: 100, borderRadius: 8, borderWidth: 1.2, borderColor: formErrors[item.data.name] ? 'red' : '#6237a0', height: 40, justifyContent: 'center', alignItems: 'center' }} onPress={() => selectFile(item.data.name)}>
+                                            <TouchableOpacity style={{ width: wp(26), borderRadius: hp(1), borderWidth: hp(0.2), borderColor: formErrors[item.data.name] ? 'red' : '#6237a0', height: hp(5), justifyContent: 'center', alignItems: 'center' }} onPress={() => { selectFile(item.data.name) }}>
                                                 <View style={{ alignItems: 'center', flexDirection: 'row' }}>
-                                                    <Ionicons size={17} name={'share-outline'} color={'#6237a0'} />
-                                                    <Text style={{ color: '#6237a0', marginLeft: 5 }}>UPLOAD</Text>
+                                                    <Ionicons size={hp(2.5)} name={'share-outline'} color={'#6237a0'} />
+                                                    <Text style={{ color: '#6237a0', marginLeft: hp(0.8), fontSize: hp(1.8) }}>UPLOAD</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         </>
@@ -203,8 +199,7 @@ export default function Form(props) {
 
                                 </View>
                                 {formErrors[item.data.name] ?
-                                    // <Text style={{ color: 'red', marginBottom: 10 }}>{formErrors[item.data.name]}</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>{formErrors[item.data.name]}</Text></View>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(2.5)} color="red" /><Text style={{ color: 'black', marginLeft: hp(1) }}>{formErrors[item.data.name]}</Text></View>
                                     : <></>
                                 }
                             </>
@@ -212,7 +207,7 @@ export default function Form(props) {
                             <>
                                 {isDownloading ?
                                     <>
-                                        <ActivityIndicator color={'#6237a0'} size={35} style={{ marginVertical: 5 }} />
+                                        <ActivityIndicator color={'#6237a0'} size={'large'} style={{ marginVertical: hp(1) }} />
                                     </> :
                                     <>
                                         <DownloadPDFButton setIsDownloading={setIsDownloading} name={item.data.fileName} pdfUrl={item.data.url} />
@@ -222,21 +217,12 @@ export default function Form(props) {
                             </>
                         ) : item.field === 'PARAGRAPH' ? (
                             <>
-                                <Text style={{ marginBottom: 15 }}>Kindly download the Agreement Form, review and sign the Terms and Conditions, and then proceed to upload the document below.</Text>
+                                <Text style={{ marginBottom: hp(1.8), fontSize: hp(1.6) }}>Kindly download the Agreement Form, review and sign the Terms and Conditions, and then proceed to upload the document below.</Text>
                             </>
                         ) : null}
                     </View>
                 )
             }} />
-            {/* <View style={styles.formButtonsContainer}>
-                <TouchableOpacity
-                    onPress={Object.keys(formData).length !== 0 ? saveForm : makeToast}
-                    style={{
-                        borderWidth: 2, backgroundColor: Object.keys(formData).length === 0 ? '#aaa' : COLORS.primary, borderColor: COLORS.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', width: '48%'
-                    }}>
-                    <Text style={{ fontSize: 18, color: 'white', fontWeight: '500' }}>Save</Text>
-                </TouchableOpacity>
-            </View> */}
         </View>
     )
 }
@@ -281,13 +267,11 @@ const styles = StyleSheet.create({
     dropdown: {
         // marginHorizontal: 1,
         // marginBottom: 15,
-        height: 50,
+        marginTop: hp(1.5),
+        height: hp(6),
         backgroundColor: 'white',
-        borderRadius: 12,
-        borderColor: '#ccc',
-        borderWidth: 1.2,
-        borderRadius: 12,
-        padding: 12,
+        borderRadius: hp(1.2),
+        padding: hp(1),
         // shadowColor: '#000',
         // shadowOffset: {
         //     width: 0,
@@ -298,23 +282,24 @@ const styles = StyleSheet.create({
         // elevation: 2,
     },
     item: {
-        padding: 17,
+        paddingHorizontal: wp(4),
+        paddingVertical: hp(1.5),
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
     textItem: {
         flex: 1,
-        fontSize: 16,
+        fontSize: hp(1.8),
     },
     placeholderStyle: {
-        fontSize: 16,
+        fontSize: hp(1.8),
     },
     selectedTextStyle: {
-        fontSize: 16,
+        fontSize: hp(1.8),
     },
     label: {
-        fontSize: 16,
+        fontSize: hp(1.8),
         marginVertical: 8,
         fontWeight: 'bold'
     },

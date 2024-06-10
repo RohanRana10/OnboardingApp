@@ -1,4 +1,4 @@
-import { View, Modal, Text, StyleSheet, Platform, StatusBar, ScrollView, TouchableOpacity, Dimensions, Image, ActivityIndicator } from 'react-native';
+import { View, Modal, Text, StyleSheet, Platform, StatusBar, ScrollView, TouchableOpacity, Dimensions, Image, ActivityIndicator, KeyboardAvoidingView } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import COLORS from '../constants/colors';
 import * as Progress from 'react-native-progress';
@@ -17,6 +17,7 @@ import Pdf from 'react-native-pdf';
 import Toast from "react-native-toast-notifications";
 import { useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default function Dashboard({ navigation }) {
 
@@ -49,6 +50,8 @@ export default function Dashboard({ navigation }) {
     const [aadharInfoData, setAadharInfoData] = useState({});
     const [agreementInfoData, setAgreementInfoData] = useState({});
     const [financialInfoData, setFinancialInfoData] = useState({});
+
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const toastRef = useRef();
 
@@ -182,6 +185,7 @@ export default function Dashboard({ navigation }) {
                 .catch((error) => {
                     setIsFormSubmitting(false);
                     console.log(error);
+                    showToast("Some error occured!", 'normal');
                 });
 
         } else {
@@ -192,6 +196,7 @@ export default function Dashboard({ navigation }) {
 
     const submitEducationalInfo = () => {
         console.log("Educational info submitted!");
+        // console.log("Edu:" ,educationalInfoFormData);
         setIsFormSubmitting(true);
         if (ValidateForm(educationalFormFields, educationalInfoFormData)) {
             let url = `${BASE_ONBOARD_URL}/update-education`
@@ -201,6 +206,8 @@ export default function Dashboard({ navigation }) {
                 primMemoUrl: educationalInfoFormData?.primMemoUrl?.path,
                 secondMemoUrl: educationalInfoFormData?.secondMemoUrl?.path,
             });
+
+            console.log("edu:", data);
 
             let config = {
                 method: 'post',
@@ -475,7 +482,7 @@ export default function Dashboard({ navigation }) {
             }
             else {
                 setIsUploading(false);
-                console.log("Returning without file");
+                console.log("Returning without file beacuse file was:", document.assets[0].mimeType);
                 showToast('This file type is not supported!', 'warning');
             }
         } catch (error) {
@@ -578,6 +585,7 @@ export default function Dashboard({ navigation }) {
                     },
                     data: data
                 };
+                console.log("data", data);
                 axios.request(config)
                     .then((response) => {
                         setIsUploading(false);
@@ -636,9 +644,11 @@ export default function Dashboard({ navigation }) {
                     },
                     data: data
                 };
+                console.log("data", data);
                 axios.request(config)
                     .then((response) => {
                         setIsUploading(false);
+
                         let path = response.data.data;
                         console.log(JSON.stringify(response.data));
                         setAgreementInfoData({ ...agreementInfoData, [name]: fileInfo, path: path, name: name });
@@ -664,291 +674,315 @@ export default function Dashboard({ navigation }) {
     }
 
     const selectFinancial = async (name) => {
-        try {
-            setIsUploading(true);
-            const document = await DocumentPicker.getDocumentAsync({
-            });
-            if (!document.canceled && document.assets[0].mimeType == 'application/pdf' || document.assets[0].mimeType == 'image/jpeg' || document.assets[0].mimeType == 'application/jpg') {
-                // Create Blob object
-                const blob = await fetch(document.assets[0].uri).then(response => response.blob());
-                let fileInfo = {
-                    name: document.assets[0].name,
-                    uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
-                    type: document.assets[0].mimeType
-                }
-                // Create FormData object
-                let uri = Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', '');
-
-                let data = new FormData();
-                data.append('file', {
-                    uri: uri,
-                    type: document.assets[0].mimeType,
-                    name: document.assets[0].name,
+            try {
+                setIsUploading(true);
+                const document = await DocumentPicker.getDocumentAsync({
                 });
-                data.append('name', name);
-                let url = `${BASE_ONBOARD_URL}/upload-document`;
-                let config = {
-                    method: 'post',
-                    maxBodyLength: Infinity,
-                    url: url,
-                    headers: {
-                        'token': user.userToken,
-                        'Content-Type': 'multipart/form-data',
-                    },
-                    data: data
-                };
+                if (!document.canceled && document.assets[0].mimeType == 'application/pdf' || document.assets[0].mimeType == 'image/jpeg' || document.assets[0].mimeType == 'application/jpg') {
+                    // Create Blob object
+                    const blob = await fetch(document.assets[0].uri).then(response => response.blob());
+                    let fileInfo = {
+                        name: document.assets[0].name,
+                        uri: Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', ''),
+                        type: document.assets[0].mimeType
+                    }
+                    // Create FormData object
+                    let uri = Platform.OS === 'android' ? document.assets[0].uri : document.assets[0].uri.replace('file://', '');
 
-                axios.request(config)
-                    .then((response) => {
-                        setIsUploading(false);
-                        let path = response.data.data;
-                        console.log(JSON.stringify(response.data));
-                        console.log(path);
-                        fileInfo.path = path;
-                        setFinancialInfoData({ ...financialInfoData, [name]: fileInfo });
-                        showToast('Upload Successful', 'success');
-                    })
-                    .catch((error) => {
-                        setIsUploading(false);
-                        console.log(error);
-                        showToast('Please try uploading again', 'normal');
+                    let data = new FormData();
+                    data.append('file', {
+                        uri: uri,
+                        type: document.assets[0].mimeType,
+                        name: document.assets[0].name,
                     });
-            }
-            else {
-                setIsUploading(false);
-                console.log("Returning without file");
-                showToast('This file type is not supported!', 'warning');
-            }
-        } catch (error) {
-            console.error('Error picking document:', error);
-        }
-    }
+                    data.append('name', name);
+                    let url = `${BASE_ONBOARD_URL}/upload-document`;
+                    let config = {
+                        method: 'post',
+                        maxBodyLength: Infinity,
+                        url: url,
+                        headers: {
+                            'token': user.userToken,
+                            'Content-Type': 'multipart/form-data',
+                        },
+                        data: data
+                    };
+                    console.log("data sent", data);
+                    axios.request(config)
+                        .then((response) => {
+                            setIsUploading(false);
+                            if (response.data.data == null) {
+                                console.log("error uploading file")
+                                console.log(JSON.stringify(response.data));
+                            }
+                            else {
+                                let path = response.data.data;
+                                console.log(JSON.stringify(response.data));
+                                console.log(path);
+                                fileInfo.path = path;
+                                setFinancialInfoData({ ...financialInfoData, [name]: fileInfo });
+                                showToast('Upload Successful', 'success');
+                            }
 
-    const closeModal = () => {
-        setIsModalVisible(false);
-        toast.show("Details updated successfully!", {
-            type: "success",
-            placement: "top",
-            duration: 3000,
-            offset: 50,
-            animationType: "slide-in",
-            swipeEnabled: false
-        });
-    }
-
-    const renderFormStep = () => {
-        switch (step) {
-            case 1:
-                return (
-                    <View style={styles.form}>
-                        <View style={{}}>
-                            <FormHeader backFunction={closeModal}
-                                nextFunction={submitPersonalInfo}
-                                isFormSubmitting={isFormSubmitting}
-                                formNumber={'1'}
-                                formHeading={'Personal Information'}
-                            />
-                            <Form rules={personalFormFields}
-                                formData={personalInfoForm}
-                                handleTextChange={handlePersonalInfoTextChange}
-                                handleDropdownChange={handlePersonalInfoDropdown}
-                                formErrors={formErrors}
-                                saveForm={submitPersonalInfo} />
-                        </View>
-                    </View>
-                )
-                break;
-            case 2: {
-                return (
-                    <View style={styles.form}>
-                        <View>
-                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
-                                nextFunction={submitEducationalInfo}
-                                isFormSubmitting={isFormSubmitting}
-                                formNumber={'2'}
-                                formHeading={'Educational Qualifications'}
-                            />
-                            <Form rules={educationalFormFields}
-                                formData={educationalInfoFormData}
-                                handleTextChange={handleEducationalInfoTextChange}
-                                formErrors={formErrors}
-                                selectFile={selectMarksheets}
-                                saveForm={submitEducationalInfo}
-                                isUploading={isUploading}
-                                createPreview={createPreview} />
-                        </View>
-                    </View>
-                )
-                break;
-            }
-            case 3: {
-                return (
-                    <View style={styles.form}>
-                        <View>
-                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
-                                nextFunction={submitPanInfo}
-                                isFormSubmitting={isFormSubmitting}
-                                formNumber={'3'}
-                                formHeading={'PAN Card Details'}
-                            />
-                            <Form rules={panFormFields}
-                                formData={panInfoData}
-                                handleTextChange={handlePanInfoTextChange}
-                                selectFile={selectPAN}
-                                formErrors={formErrors}
-                                saveForm={submitPanInfo}
-                                isUploading={isUploading}
-                                createPreview={createPreview}
-                            />
-                        </View>
-                    </View>
-                )
-                break;
-            }
-            case 4: {
-                return (
-                    <View style={styles.form}>
-                        <View>
-                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
-                                nextFunction={submitAadharInfo}
-                                isFormSubmitting={isFormSubmitting}
-                                formNumber={'4'}
-                                formHeading={'Aadhar Card Details'}
-                            />
-                            <Form rules={aadharFormFields}
-                                formData={aadharInfoData}
-                                handleTextChange={handleAadharInfoTextChange}
-                                selectFile={selectAadhar}
-                                formErrors={formErrors}
-                                saveForm={submitAadharInfo}
-                                isUploading={isUploading}
-                                createPreview={createPreview}
-                            />
-                        </View>
-                    </View>
-                )
-                break;
-            }
-            case 5: {
-                return (
-                    <View style={styles.form}>
-                        <View>
-                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
-                                nextFunction={submitAgreementInfo}
-                                isFormSubmitting={isFormSubmitting}
-                                formNumber={'5'}
-                                formHeading={'Agreement Form'}
-                            />
-
-                            <Form rules={agreementFormFields}
-                                formData={agreementInfoData}
-                                selectFile={selectAgreement}
-                                formErrors={formErrors}
-                                saveForm={submitAgreementInfo}
-                                isUploading={isUploading}
-                                isDownloading={isDownloading}
-                                setIsDownloading={setIsDownloading}
-                                createPreview={createPreview}
-                            />
-                        </View>
-                    </View>
-                )
-            }
-            case 6: {
-                return (
-                    <View style={styles.form}>
-                        <View>
-                            <FormHeader backFunction={() => setStep((prev) => prev - 1)}
-                                nextFunction={submitFinancialInfo}
-                                isFormSubmitting={isFormSubmitting}
-                                formNumber={'6'}
-                                formHeading={'Financial Information'}
-                            />
-                            <Form rules={financialFormFields}
-                                handleTextChange={handleFinancialInfoTextChange}
-                                formData={financialInfoData}
-                                selectFile={selectFinancial}
-                                formErrors={formErrors}
-                                saveForm={submitFinancialInfo}
-                                isUploading={isUploading}
-                                createPreview={createPreview}
-                            />
-                        </View>
-                        {/* <View style={styles.formButtonsContainer}>
-                            <Button style={{ marginLeft: 15, ...styles.formButton }} title="Submit" onPress={submitFinancialInfo} />
-                        </View> */}
-                    </View>
-                )
-                break;
-            }
-            default:
-                return (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text style={{
-                            fontSize: 20, color: COLORS.primary
-                        }}>Your details have been received!</Text>
-                        <View style={{ width: '50%', margin: 20 }}>
-                            <Button filled title="Close" onPress={closeModal} />
-                            <TouchableOpacity style={styles.button}>
-                                <Text>Close</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                );
-        }
-    }
-
-    const openFormsModal = () => {
-        setStep(1);
-        setIsModalVisible(true);
-    }
-
-    const openPreviewModal = () => {
-        setIsPreviewVisible(true);
-    }
-
-    const verifyToken = async () => {
-        const token = await AsyncStorage.getItem('token');
-        console.log('Token on dashboard: ', token);
-    }
-
-    const logout = async () => {
-        try {
-            await AsyncStorage.removeItem('token');
-            console.log('Logged out!');
-        } catch (error) {
-            console.log("error while removing token", error);
-        }
-        navigation.replace('Login');
-    }
-
-    const handleLogout = () => {
-        let url = `${BASE_ONBOARD_URL}/logout`;
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: url,
-            headers: {
-                'token': user.userToken
-            }
-        };
-        axios.request(config)
-            .then((response) => {
-                if (response.data.status.statusCode === 1) {
-                    console.log(JSON.stringify(response.data));
-                    logout();
-                    toast.show("Logged out!", {
-                        type: "success",
-                        placement: "bottom",
-                        duration: 3000,
-                        offset: 50,
-                        animationType: "slide-in",
-                        swipeEnabled: false
-                    });
+                        })
+                        .catch((error) => {
+                            setIsUploading(false);
+                            console.log(error);
+                            showToast('Please try uploading again', 'normal');
+                        });
                 }
                 else {
-                    console.log(JSON.stringify(response.data));
-                    toast.show("Some error occured!", {
+                    setIsUploading(false);
+                    console.log("Returning without file");
+                    showToast('This file type is not supported!', 'warning');
+                }
+            } catch (error) {
+                console.error('Error picking document:', error);
+            }
+        }
+
+        const closeModal = () => {
+            setIsModalVisible(false);
+            toast.show("Details updated successfully!", {
+                type: "success",
+                placement: "top",
+                duration: 3000,
+                offset: 50,
+                animationType: "slide-in",
+                swipeEnabled: false
+            });
+        }
+
+        const renderFormStep = () => {
+            switch (step) {
+                case 1:
+                    return (
+                        <View style={styles.form}>
+                            <View style={{}}>
+                                <FormHeader backFunction={closeModal}
+                                    nextFunction={submitPersonalInfo}
+                                    isFormSubmitting={isFormSubmitting}
+                                    formNumber={'1'}
+                                    formHeading={'Personal Information'}
+                                />
+                                <Form rules={personalFormFields}
+                                    formData={personalInfoForm}
+                                    handleTextChange={handlePersonalInfoTextChange}
+                                    handleDropdownChange={handlePersonalInfoDropdown}
+                                    formErrors={formErrors}
+                                    saveForm={submitPersonalInfo} />
+                            </View>
+                        </View>
+                    )
+                    break;
+                case 2: {
+                    return (
+                        <View style={styles.form}>
+                            <View>
+                                <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                    nextFunction={submitEducationalInfo}
+                                    isFormSubmitting={isFormSubmitting}
+                                    formNumber={'2'}
+                                    formHeading={'Educational Qualifications'}
+                                />
+                                <Form rules={educationalFormFields}
+                                    formData={educationalInfoFormData}
+                                    handleTextChange={handleEducationalInfoTextChange}
+                                    formErrors={formErrors}
+                                    selectFile={selectMarksheets}
+                                    saveForm={submitEducationalInfo}
+                                    isUploading={isUploading}
+                                    createPreview={createPreview} />
+                            </View>
+                        </View>
+                    )
+                    break;
+                }
+                case 3: {
+                    return (
+                        <View style={styles.form}>
+                            <View>
+                                <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                    nextFunction={submitPanInfo}
+                                    isFormSubmitting={isFormSubmitting}
+                                    formNumber={'3'}
+                                    formHeading={'PAN Card Details'}
+                                />
+                                <Form rules={panFormFields}
+                                    formData={panInfoData}
+                                    handleTextChange={handlePanInfoTextChange}
+                                    selectFile={selectPAN}
+                                    formErrors={formErrors}
+                                    saveForm={submitPanInfo}
+                                    isUploading={isUploading}
+                                    createPreview={createPreview}
+                                />
+                            </View>
+                        </View>
+                    )
+                    break;
+                }
+                case 4: {
+                    return (
+                        <View style={styles.form}>
+                            <View>
+                                <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                    nextFunction={submitAadharInfo}
+                                    isFormSubmitting={isFormSubmitting}
+                                    formNumber={'4'}
+                                    formHeading={'Aadhar Card Details'}
+                                />
+                                <Form rules={aadharFormFields}
+                                    formData={aadharInfoData}
+                                    handleTextChange={handleAadharInfoTextChange}
+                                    selectFile={selectAadhar}
+                                    formErrors={formErrors}
+                                    saveForm={submitAadharInfo}
+                                    isUploading={isUploading}
+                                    createPreview={createPreview}
+                                />
+                            </View>
+                        </View>
+                    )
+                    break;
+                }
+                case 5: {
+                    return (
+                        <View style={styles.form}>
+                            <View>
+                                <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                    nextFunction={submitAgreementInfo}
+                                    isFormSubmitting={isFormSubmitting}
+                                    formNumber={'5'}
+                                    formHeading={'Agreement Form'}
+                                />
+
+                                <Form rules={agreementFormFields}
+                                    formData={agreementInfoData}
+                                    selectFile={selectAgreement}
+                                    formErrors={formErrors}
+                                    saveForm={submitAgreementInfo}
+                                    isUploading={isUploading}
+                                    isDownloading={isDownloading}
+                                    setIsDownloading={setIsDownloading}
+                                    createPreview={createPreview}
+                                />
+                            </View>
+                        </View>
+                    )
+                }
+                case 6: {
+                    return (
+                        <View style={styles.form}>
+                            <View>
+                                <FormHeader backFunction={() => setStep((prev) => prev - 1)}
+                                    nextFunction={submitFinancialInfo}
+                                    isFormSubmitting={isFormSubmitting}
+                                    formNumber={'6'}
+                                    formHeading={'Financial Information'}
+                                />
+                                <Form rules={financialFormFields}
+                                    handleTextChange={handleFinancialInfoTextChange}
+                                    formData={financialInfoData}
+                                    selectFile={selectFinancial}
+                                    formErrors={formErrors}
+                                    saveForm={submitFinancialInfo}
+                                    isUploading={isUploading}
+                                    createPreview={createPreview}
+                                />
+                            </View>
+                            {/* <View style={styles.formButtonsContainer}>
+                            <Button style={{ marginLeft: 15, ...styles.formButton }} title="Submit" onPress={submitFinancialInfo} />
+                        </View> */}
+                        </View>
+                    )
+                    break;
+                }
+                default:
+                    return (
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <Text style={{
+                                fontSize: 20, color: COLORS.primary
+                            }}>Your details have been received!</Text>
+                            <View style={{ width: '50%', margin: 20 }}>
+                                <Button filled title="Close" onPress={closeModal} />
+                                <TouchableOpacity style={styles.button}>
+                                    <Text>Close</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    );
+            }
+        }
+
+        const openFormsModal = () => {
+            setStep(1);
+            setIsModalVisible(true);
+        }
+
+        const openPreviewModal = () => {
+            setIsPreviewVisible(true);
+        }
+
+        const verifyToken = async () => {
+            const token = await AsyncStorage.getItem('token');
+            console.log('Token on dashboard: ', token);
+        }
+
+        const logout = async () => {
+            try {
+                await AsyncStorage.removeItem('token');
+                console.log('Logged out!');
+            } catch (error) {
+                console.log("error while removing token", error);
+            }
+            navigation.replace('Login');
+        }
+
+        const handleLogout = () => {
+            setIsLoggingOut(true);
+            let url = `${BASE_ONBOARD_URL}/logout`;
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: url,
+                headers: {
+                    'token': user.userToken
+                }
+            };
+            axios.request(config)
+                .then((response) => {
+                    if (response.data.status.statusCode === 1) {
+                        console.log(JSON.stringify(response.data));
+                        logout();
+                        setIsLoggingOut(false);
+                        toast.show("Logged out!", {
+                            type: "success",
+                            placement: "bottom",
+                            duration: 3000,
+                            offset: 50,
+                            animationType: "slide-in",
+                            swipeEnabled: false
+                        });
+                    }
+                    else {
+                        console.log(JSON.stringify(response.data));
+                        setIsLoggingOut(false);
+                        toast.show("Some error occured!", {
+                            type: "normal",
+                            placement: "bottom",
+                            duration: 3000,
+                            offset: 50,
+                            animationType: "slide-in",
+                            swipeEnabled: false
+                        });
+                    }
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                    setIsLoggingOut(false);
+                    toast.show("Please try again!", {
                         type: "normal",
                         placement: "bottom",
                         duration: 3000,
@@ -956,363 +990,346 @@ export default function Dashboard({ navigation }) {
                         animationType: "slide-in",
                         swipeEnabled: false
                     });
-                }
-
-            })
-            .catch((error) => {
-                console.log(error);
-                toast.show("Please try again!", {
-                    type: "normal",
-                    placement: "bottom",
-                    duration: 3000,
-                    offset: 50,
-                    animationType: "slide-in",
-                    swipeEnabled: false
                 });
-            });
-    }
+        }
 
-    const fetchUserData = () => {
-        let url = `${BASE_ONBOARD_URL}/landing`;
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: url,
-            headers: {
-                'token': user.userToken
+        const fetchUserData = () => {
+            let url = `${BASE_ONBOARD_URL}/landing`;
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: url,
+                headers: {
+                    'token': user.userToken
+                }
+            };
+
+            axios.request(config)
+                .then((response) => {
+                    console.log(JSON.stringify(response.data));
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+
+
+        const createPreview = (data) => {
+            if (data.type === 'image/jpeg') {
+                setIsPreviewLoading(true);
+                setImageResource(data.path);
+                setIsPreviewVisible(true);
             }
-        };
+            else if (data.type === 'application/pdf') {
+                setIsPreviewLoading(true);
+                setPdfResource({
+                    uri: data.path,
+                    cache: true
+                });
+                console.log("Path is:", data.path);
+                setIsPreviewVisible(true);
+            }
+            else {
+                showToast('Please select a valid file type', 'normal');
 
-        axios.request(config)
-            .then((response) => {
-                console.log(JSON.stringify(response.data));
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-    }
-
-
-    const createPreview = (data) => {
-        if (data.type === 'image/jpeg') {
-            setIsPreviewLoading(true);
-            setImageResource(data.path);
-            setIsPreviewVisible(true);
+            }
         }
-        else if (data.type === 'application/pdf') {
-            setIsPreviewLoading(true);
-            setPdfResource({
-                uri: data.path,
-                cache: true
-            });
-            console.log("Path is:", data.path);
-            setIsPreviewVisible(true);
+
+        const closePreviewModal = () => {
+            console.log("closed Preview");
+            setImageResource('');
+            setPdfResource(null);
+            setIsPreviewVisible(false);
         }
-        else {
-            showToast('Please select a valid file type', 'normal');
 
-        }
-    }
+        useEffect(() => {
+            setTimeout(() => {
+                setProgress(userDashboardInfo["Percentage Complete"] / 100);
+            }, 500);
+            console.log("useEffect Loaded");
+            console.log("Form fields Fetched?", `${formFields.personalDetails ? "TRUE" : "FALSE"}`);
+            // console.log("Form fields Fetched?", `${formFields.personalDetails}`);
+        }, [userDashboardInfo]);
 
-    const closePreviewModal = () => {
-        console.log("closed Preview");
-        setImageResource('');
-        setPdfResource(null);
-        setIsPreviewVisible(false);
-    }
-
-    useEffect(() => {
-        setTimeout(() => {
-            setProgress(userDashboardInfo["Percentage Complete"] / 100);
-        }, 500);
-        console.log("useEffect Loaded");
-        console.log("Form fields Fetched?", `${formFields.personalDetails ? "TRUE" : "FALSE"}`);
-        // console.log("Form fields Fetched?", `${formFields.personalDetails}`);
-    }, [userDashboardInfo]);
-
-    return (
-        <SafeAreaView style={styles.container}>
-            <Modal visible={isModalVisible}
-                onRequestClose={() => setIsModalVisible(false)} animationType='slide'>
-                <View style={{ flex: 1, paddingVertical: 20, paddingHorizontal: 10 }}>
-                    <View style={{
-                        width: '100%',
-                        height: '100%',
-                    }}>
-                        {renderFormStep()}
+        return (
+            <SafeAreaView style={styles.container}>
+                <Modal visible={isModalVisible}
+                    onRequestClose={() => setIsModalVisible(false)} animationType='slide'>
+                    <View style={{ flex: 1, paddingVertical: hp(1.8), paddingHorizontal: wp(4) }}>
+                        <View style={{
+                            width: wp(92),
+                            height: hp(100),
+                        }}>
+                            {renderFormStep()}
+                        </View>
                     </View>
-                </View>
-                <Toast ref={toastRef} />
-            </Modal>
+                    <Toast ref={toastRef} />
+                </Modal>
 
-            <Modal visible={isPreviewVisible}
-                onRequestClose={closePreviewModal} animationType='slide'>
-                <View style={{ flex: 1, paddingVertical: 20, paddingHorizontal: 10 }}>
-                    <View style={{
-                        width: '100%',
-                        height: '100%',
-                    }}>
-                        <TouchableOpacity onPress={closePreviewModal} style={{ alignSelf: 'flex-end', marginBottom: 10 }}>
-                            <Ionicons size={25} name={'close-circle-outline'} color={COLORS.primary} />
-                        </TouchableOpacity>
-                        <View style={{ flex: 1 }}>
-                            {imageResource !== '' &&
-                                <>
-                                    {isPreviewLoading && <ActivityIndicator color={COLORS.primary} size={40} style={{}} />}
-                                    <Image
-                                        source={{ uri: imageResource }}
-                                        style={styles.image}
-                                        onLoad={() => {
-                                            setIsPreviewLoading(false);
-                                        }}
-                                    />
-                                </>}
-
-                            {pdfResource &&
-                                <>
-                                    <View style={{ backgroundColor: '#ccc', padding: 10, borderRadius: 10 }}>
-
-                                        {isPreviewLoading && <ActivityIndicator color={COLORS.primary} size={40} style={{}} />}
-                                        <Pdf
-                                            trustAllCerts={false}
-                                            source={pdfResource}
-                                            style={styles.pdf}
-                                            onLoadComplete={(numberOfPages, filePath) => {
-                                                console.log(`loaded ${numberOfPages}`);
+                <Modal visible={isPreviewVisible}
+                    onRequestClose={closePreviewModal} animationType='slide'>
+                    <View style={{ flex: 1, paddingVertical: hp(1.8), paddingHorizontal: wp(4) }}>
+                        <View style={{
+                            width: wp(92),
+                            height: hp(100),
+                        }}>
+                            <TouchableOpacity onPress={closePreviewModal} style={{ alignSelf: 'flex-end', marginBottom: hp(1) }}>
+                                <Ionicons size={hp(3)} name={'close-circle-outline'} color={"#6237a0"} />
+                            </TouchableOpacity>
+                            <View style={{ flex: 1 }}>
+                                {imageResource !== '' &&
+                                    <>
+                                        {isPreviewLoading && <ActivityIndicator color={COLORS.primary} size={'large'} style={{}} />}
+                                        <Image
+                                            source={{ uri: imageResource }}
+                                            style={styles.image}
+                                            onLoad={() => {
                                                 setIsPreviewLoading(false);
                                             }}
-                                            onError={(error) => {
-                                                console.log(`Error Here:`, error);
-                                            }}
                                         />
-                                    </View>
-                                </>}
+                                    </>}
+
+                                {pdfResource &&
+                                    <>
+                                        <View style={{ backgroundColor: '#ccc', padding: hp(1), borderRadius: hp(0.5), alignItems: 'center' }}>
+
+                                            {isPreviewLoading && <ActivityIndicator color={"#6237a0"} size={"large"} style={{}} />}
+                                            <Pdf
+                                                trustAllCerts={false}
+                                                source={pdfResource}
+                                                style={styles.pdf}
+                                                onLoadComplete={(numberOfPages, filePath) => {
+                                                    console.log(`loaded ${numberOfPages}`);
+                                                    setIsPreviewLoading(false);
+                                                }}
+                                                onError={(error) => {
+                                                    console.log(`Error Here:`, error);
+                                                }}
+                                            />
+                                        </View>
+                                    </>}
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
+                <StatusBar barStyle={'dark-content'} backgroundColor={'#f2e6ff'} />
+                <View style={{ backgroundColor: '#f2e6ff', borderBottomLeftRadius: hp(8), paddingHorizontal: wp(5), borderBottomRightRadius: hp(8), height: hp(26), justifyContent: 'center' }}>
+                    <View style={styles.headingContainer}>
+                        <Text style={styles.welcomeText}>Welcome</Text>
+                        <Text style={{ textTransform: 'capitalize', ...styles.username }}>{userDashboardInfo.firstName ? userDashboardInfo.firstName : 'User'}!</Text>
+                    </View>
+                    <View style={styles.progressSection}>
+                        <View style={styles.progressText}>
+                            <Text style={{ fontSize: hp(1.8), lineHeight: hp(2.5) }}>
+                                Ready to dive into your new role? Let's streamline your onboarding by completing your profile.
+                            </Text>
+                            <Text style={{ fontSize: hp(1.8) }}>
+
+                            </Text>
+                        </View>
+                        <View>
+                            <Progress.Circle
+                                showsText={true}
+                                thickness={hp(1.8)}
+                                textStyle={{
+                                    fontSize: hp(2.6),
+                                    fontWeight: '600'
+                                }}
+                                color='#330066'
+                                borderWidth={1}
+                                strokeCap='round'
+                                progress={progress}
+                                size={hp(16)} />
                         </View>
                     </View>
                 </View>
-            </Modal>
-
-            <StatusBar barStyle={'dark-content'} backgroundColor={'#f2e6ff'} />
-            <View style={{ backgroundColor: '#f2e6ff', paddingVertical: 15, borderBottomLeftRadius: 60, paddingHorizontal: 20, borderBottomRightRadius: 60 }}>
-                <View style={styles.headingContainer}>
-                    <Text style={styles.welcomeText}>Welcome</Text>
-                    <Text style={{ textTransform: 'capitalize', ...styles.username }}>{userDashboardInfo.firstName ? userDashboardInfo.firstName : 'User'}!</Text>
-                </View>
-                <View style={styles.progressSection}>
-                    <View style={styles.progressText}>
-                        <Text style={{ fontSize: 14 }}>
-                            Ready to dive into your new role?
-                        </Text>
-                        <Text style={{ fontSize: 14 }}>
-                            Let's streamline your onboarding by completing your profile.
-                        </Text>
-                    </View>
+                <View style={styles.uploadContainer}>
+                    <Text style={{ fontSize: hp(1.9), fontWeight: '500' }}>
+                        Complete Required Details
+                    </Text>
                     <View>
-                        <Progress.Circle
-                            showsText={true}
-                            thickness={9}
-                            textStyle={{
-                                fontSize: 25,
-                                fontWeight: '600'
-                            }}
-                            color='#330066'
-                            borderWidth={1}
-                            strokeCap='round'
-                            progress={progress}
-                            size={115} />
-                    </View>
-                </View>
-            </View>
-            <View style={styles.uploadContainer}>
-                <Text style={{ fontSize: 15, fontWeight: '500', }}>
-                    Complete Required Details
-                </Text>
-                <View>
-                    <TouchableOpacity onPress={openFormsModal} style={styles.uploadButton}>
-                        <Text style={{ color: 'white', paddingHorizontal: 4 }}>UPLOAD</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <View style={styles.listContainer}>
-                <ScrollView style={styles.scrollView}>
-                    <RectangleCard title={'Personal Information'} isComplete={userDashboardInfo['Personal Information']} />
-                    <RectangleCard title={'Educational Qualifications'} isComplete={userDashboardInfo['Education Details']} />
-                    <RectangleCard title={'PAN Card Details'} isComplete={userDashboardInfo["Pan Card"]} />
-                    <RectangleCard title={'Aadhar Card Details'} isComplete={userDashboardInfo["Aadhar Card"]} />
-                    <RectangleCard title={'Agreement Form'} isComplete={userDashboardInfo["Agreement"]} />
-                    <RectangleCard title={'Financial Information'} isComplete={userDashboardInfo["Bank Details"]} />
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 12 }}>
-                        <TouchableOpacity onPress={handleLogout} style={{ backgroundColor: '#330066', padding: 8, borderRadius: 6, width: '45%' }}>
-                            <Text style={{ color: 'white', padding: 8, alignSelf: 'center' }}>LOGOUT</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => navigation.replace('Waiting')} style={{
-                            backgroundColor: '#330066', padding: 8, borderRadius: 6, width: '45%'
-                        }}>
-                            <Text style={{ color: 'white', padding: 8, alignSelf: 'center' }}>PROCEED</Text>
+                        <TouchableOpacity onPress={openFormsModal} style={styles.uploadButton}>
+                            <Text style={{ color: 'white', paddingHorizontal: wp(2), fontSize: hp(1.8) }}>UPLOAD</Text>
                         </TouchableOpacity>
                     </View>
-                </ScrollView>
-            </View>
-        </SafeAreaView>
-    )
-}
+                </View>
 
-const styles = StyleSheet.create({
-    container: {
-        // paddingTop: 18,
-        backgroundColor: '#fff',
-        // paddingHorizontal: 12,
-        flex: 1
-    },
-    progressText: {
-        width: "60%"
-    },
-    formButton: {
-        backgroundColor: 'white',
-        width: '48%'
-    },
-    listItem: {
-        flexDirection: 'row',
-        backgroundColor: '#A6E0FF',
-        borderRadius: 10,
-        alignItems: 'center',
-        paddingVertical: 12,
-        marginVertical: 10,
-        paddingHorizontal: 30,
-        justifyContent: 'space-between'
-    },
-    uploadContainer: {
-        flexDirection: 'row',
-        // borderWidth: 2,
-        // borderColor: '#A6E0FF',
-        borderRadius: 10,
-        alignItems: 'center',
-        paddingVertical: 16,
-        marginTop: 10,
-        paddingHorizontal: 12,
-        justifyContent: 'space-between'
-    },
-    listItemButton: {
-        backgroundColor: COLORS.primary,
-        backgroundColor: 'red',
-        padding: 8,
-        borderRadius: 6
-    },
-    uploadButton: {
-        backgroundColor: '#330066',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 6,
-    },
-    progressSection: {
-        justifyContent: 'space-between',
-        width: '100%',
-        // backgroundColor: 'gray',
-        // height: '22%',
-        // backgroundColor: '#ddd',
-        flexDirection: 'row',
-        alignItems: 'center',
-        // paddingHorizontal: 10,
-        // paddingVertical: 10,
-        borderRadius: 10,
-        // marginTop: 12
-    },
-    listContainer: {
-        width: '100%',
-        height: '70%',
-        // marginTop: 12,
-        paddingHorizontal: 0, backgroundColor: '#fff', marginBottom: 20
-    },
-    welcomeText: {
-        color: COLORS.secondary,
-        fontSize: 22,
-        marginRight: 5,
-    },
-    username: {
-        color: '#6237a0',
-        fontSize: 35,
-        fontWeight: '600',
-    },
-    headingContainer: {
-        flexDirection: 'row',
-        // marginTop: 25,
-        // marginBottom: 15,
-        alignItems: 'baseline',
-    },
-    formTitle: {
-        fontSize: 25,
-        marginTop: 4,
-        color: COLORS.primary
-    },
-    formButtonsContainer: {
-        flexDirection: 'row', width: '100%',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        marginBottom: 10
-    },
-    form: {
-        justifyContent: 'space-between',
-        height: '100%'
-    },
-    input: {
-        marginBottom: 15,
-        backgroundColor: 'white',
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 8,
-        fontWeight: 'bold'
-    },
-    dropdown: {
-        marginHorizontal: 1,
-        marginBottom: 15,
-        height: 50,
-        backgroundColor: 'white',
-        borderRadius: 12,
-        borderColor: '#ccc',
-        borderWidth: 1.2,
-        borderRadius: 12,
-        padding: 12,
-    },
-    item: {
-        padding: 17,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    textItem: {
-        flex: 1,
-        fontSize: 16,
-    },
-    placeholderStyle: {
-        fontSize: 16,
-    },
-    selectedTextStyle: {
-        fontSize: 16,
-    },
-    iconStyle: {
-        width: 20,
-        height: 20,
-    },
-    pdf: {
-        width: Dimensions.get('window').width - 40,
-        height: Dimensions.get('window').height,
-        backgroundColor: '#ccc'
-    },
-    image: {
-        width: '100%', // Set the desired width
-        height: '80%', // Set the desired height
-        resizeMode: 'contain', // or 'contain' for different resize modes
-        borderRadius: 10, // Optional: Add borderRadius for a rounded image
-    },
-    button: {
-        width: '100%',
-        backgroundColor: '#6237A0',
-        height: 50,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 10,
-        borderRadius: 12
-    },
-})
+                <View style={styles.listContainer}>
+                    <ScrollView>
+                        <RectangleCard title={'Personal Information'} isComplete={userDashboardInfo['Personal Information']} />
+                        <RectangleCard title={'Educational Qualifications'} isComplete={userDashboardInfo['Education Details']} />
+                        <RectangleCard title={'PAN Card Details'} isComplete={userDashboardInfo["Pan Card"]} />
+                        <RectangleCard title={'Aadhar Card Details'} isComplete={userDashboardInfo["Aadhar Card"]} />
+                        <RectangleCard title={'Agreement Form'} isComplete={userDashboardInfo["Agreement"]} />
+                        <RectangleCard title={'Financial Information'} isComplete={userDashboardInfo["Bank Details"]} />
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: wp(2.5), backgroundColor: '#fff', marginVertical: hp(1), alignItems: 'center', paddingBottom: hp(5) }}>
+                            {isLoggingOut ? (<View style={{ height: hp(6), width: wp(45), justifyContent: 'center' }}>
+                                <ActivityIndicator size={'large'} color={"#6237a0"} />
+                            </View>) : (
+                                <TouchableOpacity onPress={handleLogout} style={{
+                                    backgroundColor: '#330066', height: hp(6), borderRadius: hp(1.5), width: wp(45), justifyContent: 'center'
+                                }}>
+                                    <Text style={{ color: 'white', alignSelf: 'center', fontSize: hp(1.8) }}>LOGOUT</Text>
+                                </TouchableOpacity>
+                            )}
+
+                            <TouchableOpacity onPress={() => navigation.replace('Waiting')} style={{
+                                backgroundColor: '#330066', height: hp(6), borderRadius: hp(1.5), width: wp(45), justifyContent: 'center'
+                            }}>
+                                <Text style={{ color: 'white', alignSelf: 'center', fontSize: hp(1.8) }}>PROCEED</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
+                </View>
+            </SafeAreaView>
+        )
+    }
+
+    const styles = StyleSheet.create({
+        container: {
+            backgroundColor: '#fff',
+            flex: 1
+        },
+        progressText: {
+            width: "60%"
+        },
+        formButton: {
+            backgroundColor: 'white',
+            width: '48%'
+        },
+        listItem: {
+            flexDirection: 'row',
+            backgroundColor: '#A6E0FF',
+            borderRadius: 10,
+            alignItems: 'center',
+            paddingVertical: 12,
+            marginVertical: 10,
+            paddingHorizontal: 30,
+            justifyContent: 'space-between'
+        },
+        uploadContainer: {
+            flexDirection: 'row',
+            borderRadius: hp(2),
+            alignItems: 'center',
+            paddingHorizontal: wp(4),
+            justifyContent: 'space-between',
+            height: hp(10), backgroundColor: '#fff'
+        },
+        listItemButton: {
+            backgroundColor: COLORS.primary,
+            backgroundColor: 'red',
+            padding: 8,
+            borderRadius: 6
+        },
+        uploadButton: {
+            backgroundColor: '#330066',
+            height: hp(5),
+            alignItems: 'center', justifyContent: "center",
+            width: wp(28),
+            borderRadius: hp(1.5),
+        },
+        progressSection: {
+            justifyContent: 'space-between',
+            width: wp(90),
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderRadius: 10,
+        },
+        listContainer: {
+            width: wp(100),
+            height: hp(60),
+            backgroundColor: '#fff',
+        },
+        welcomeText: {
+            color: COLORS.secondary,
+            fontSize: hp(2.5),
+            marginRight: wp(1),
+        },
+        username: {
+            color: '#6237a0',
+            fontSize: hp(4),
+            fontWeight: '600',
+        },
+        headingContainer: {
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            // marginBottom: hp(1.5)
+        },
+        formTitle: {
+            fontSize: 25,
+            marginTop: 4,
+            color: COLORS.primary
+        },
+        formButtonsContainer: {
+            flexDirection: 'row', width: '100%',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            marginBottom: 10
+        },
+        form: {
+            justifyContent: 'space-between',
+            height: hp(100)
+        },
+        input: {
+            marginBottom: 15,
+            backgroundColor: 'white',
+        },
+        label: {
+            fontSize: 16,
+            marginBottom: 8,
+            fontWeight: 'bold'
+        },
+        dropdown: {
+            marginHorizontal: 1,
+            marginBottom: 15,
+            height: 50,
+            backgroundColor: 'white',
+            borderRadius: 12,
+            borderColor: '#ccc',
+            borderWidth: 1.2,
+            borderRadius: 12,
+            padding: 12,
+        },
+        item: {
+            padding: 17,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        },
+        textItem: {
+            flex: 1,
+            fontSize: 16,
+        },
+        placeholderStyle: {
+            fontSize: 16,
+        },
+        selectedTextStyle: {
+            fontSize: 16,
+        },
+        iconStyle: {
+            width: 20,
+            height: 20,
+        },
+        pdf: {
+            width: wp(80),
+            height: hp(80),
+            backgroundColor: '#ccc',
+            justifyContent: 'center'
+        },
+        image: {
+            width: '100%', // Set the desired width
+            height: '80%', // Set the desired height
+            resizeMode: 'contain', // or 'contain' for different resize modes
+            borderRadius: 10, // Optional: Add borderRadius for a rounded image
+        },
+        button: {
+            width: '100%',
+            backgroundColor: '#6237A0',
+            height: 50,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 10,
+            borderRadius: 12
+        },
+    })

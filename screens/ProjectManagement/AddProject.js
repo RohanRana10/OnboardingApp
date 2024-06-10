@@ -1,21 +1,18 @@
-import { ActivityIndicator, Button, FlatList, Image, Keyboard, StatusBar, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, Image, Keyboard, StatusBar, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useContext, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-// import { StatusBar } from 'expo-status-bar'
 import { Searchbar, TextInput } from 'react-native-paper'
-import { FontAwesome, Fontisto, Ionicons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import filter from 'lodash.filter';
 import CheckBox from 'expo-checkbox';
 import { Dropdown } from 'react-native-element-dropdown';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from 'axios'
 import { BASE_PROJECT_URL } from '../../utils/APIConstants'
 import { UserContext } from '../../context/userContext'
 import { useToast } from 'react-native-toast-notifications'
 import { useNavigation } from '@react-navigation/native'
-
-const URL = 'https://randomuser.me/api/?results=20';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default function AddProject() {
 
@@ -47,25 +44,12 @@ export default function AddProject() {
     const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
     const [isManagerListModalVisible, setIsManagerListModalVisible] = useState(false);
 
-    // const [toggleCheckBox, setToggleCheckBox] = useState(false);
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [selectedManagers, setSelectedManagers] = useState([]);
     const [thumbnails, setThumbnails] = useState([]);
     const [managerThumbnails, setManagerThumbnails] = useState([]);
     const [submitButtonLoading, setSubmitButtonLoading] = useState(false);
 
-    // const extractThumbnails = (selectedMembers, data) => {
-    //     const thumbnailURLs = [];
-
-    //     data.forEach(person => {
-    //         if (selectedMembers.includes(person.login.username)) {
-    //             thumbnailURLs.push(person.picture.thumbnail);
-    //             console.log('url added')
-    //         }
-    //     });
-
-    //     return thumbnailURLs;
-    // }
 
     const updateMemberList = (username) => {
         if (selectedMembers.includes(username)) {
@@ -106,8 +90,6 @@ export default function AddProject() {
         { label: 'Testing', value: 5 },
     ];
 
-    const [value, setValue] = useState(null);
-
     const renderItem = item => {
         return (
             <View style={styles.item}>
@@ -118,7 +100,6 @@ export default function AddProject() {
 
     useEffect(() => {
         setSearchLoading(true);
-        // fetchSearchData(URL);
         fetchEmployees();
     }, []);
 
@@ -145,21 +126,6 @@ export default function AddProject() {
                 setSearchError(error);
                 setSearchLoading(false);
             });
-    }
-
-    const fetchSearchData = async (url) => {
-        try {
-            const response = await fetch(url);
-            const json = await response.json();
-            setSearchData(json.results);
-            setFullSearchData(json.results);
-            setSearchLoading(false);
-            // console.log(json.results);
-        } catch (error) {
-            setSearchError(error);
-            setSearchLoading(false);
-            console.log(error);
-        }
     }
 
 
@@ -190,7 +156,7 @@ export default function AddProject() {
     }
 
     const contains = ({ firstName, lastName, designation }, query) => {
-        if (firstName.includes(query) || lastName.includes(query)) {
+        if ((firstName.toLowerCase()).includes(query) || (lastName.toLowerCase()).includes(query)) {
             return true;
         }
         else {
@@ -322,23 +288,23 @@ export default function AddProject() {
             <StatusBar backgroundColor={"#fff"} barStyle={'dark-content'} />
             <ScrollView>
                 <Text style={styles.heading}>New Project</Text>
-                <Text style={{ paddingHorizontal: 18, marginTop: 8, fontWeight: '300', color: 'gray' }}>Welcome! Let's start by filling out the information below to create your new project.</Text>
+                <Text style={{ paddingHorizontal: wp(4), fontSize: hp(1.8), marginTop: hp(1), fontWeight: '300', color: 'gray', width: wp(92) }}>Welcome! Let's start by filling out the information below to create your new project.</Text>
                 <View style={styles.form}>
                     <TextInput
                         label="Title"
                         value={title}
                         mode={'outlined'}
                         outlineStyle={{
-                            borderRadius: 12,
+                            borderRadius: hp(1.2),
                             borderColor: errors.title ? 'red' : '#6237A0'
                         }}
-                        style={{ backgroundColor: 'white', marginTop: 12 }}
+                        style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                         onChangeText={text => setTitle(text)}
                         textColor='#28104E'
                         selectionColor='#6237a0'
                         activeOutlineColor="#6237a0"
                     />
-                    {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Title is required!</Text></View>}
+                    {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Title is required!</Text></View>}
                     <TextInput
                         label="Description"
                         multiline
@@ -346,28 +312,16 @@ export default function AddProject() {
                         value={description}
                         mode={'outlined'}
                         outlineStyle={{
-                            borderRadius: 12,
+                            borderRadius: hp(1.2),
                             borderColor: errors.description ? 'red' : '#6237A0'
                         }}
-                        style={{ backgroundColor: 'white', marginTop: 10 }}
+                        style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                         onChangeText={text => setDescription(text)}
                         textColor='#28104E'
                         selectionColor='#6237a0'
                         activeOutlineColor="#6237a0"
                     />
-                    {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Description is required!</Text></View>}
-                    {/* <TextInput
-                    label="Tag"
-                    value={tag}
-                    mode={'outlined'}
-                    maxLength={12}
-                    outlineStyle={{
-                        borderRadius: 12,
-                        borderColor: errors.tag ? 'red' : '#6237A0'
-                    }}
-                    style={{ backgroundColor: 'white', marginTop: 10 }}
-                    onChangeText={text => setTag(text)}
-                /> */}
+                    {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Description is required!</Text></View>}
 
                     <Dropdown
                         style={{ ...styles.dropdown, borderColor: errors.tag ? 'red' : '#6237a0', borderWidth: 1 }}
@@ -376,7 +330,7 @@ export default function AddProject() {
                         inputSearchStyle={styles.inputSearchStyle}
                         iconStyle={styles.iconStyle}
                         data={data}
-                        maxHeight={300}
+                        maxHeight={hp(20)}
                         labelField="label"
                         valueField="value"
                         placeholder="Tag"
@@ -386,7 +340,7 @@ export default function AddProject() {
                         }}
                         renderItem={renderItem}
                     />
-                    {errors.tag && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Tag is required!</Text></View>}
+                    {errors.tag && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Tag is required!</Text></View>}
 
                     {showStartDatePicker &&
                         <DateTimePicker
@@ -406,10 +360,10 @@ export default function AddProject() {
                                     mode={'outlined'}
                                     maxLength={12}
                                     outlineStyle={{
-                                        borderRadius: 12,
+                                        borderRadius: hp(1.2),
                                         borderColor: errors.startDate ? 'red' : '#6237A0'
                                     }}
-                                    style={{ backgroundColor: 'white', marginTop: 10 }}
+                                    style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                                     onChangeText={setStartDate}
                                     editable={false}
                                     textColor='#28104E'
@@ -417,7 +371,7 @@ export default function AddProject() {
                                     activeOutlineColor="#6237a0"
                                 />
                             </Pressable>
-                            {errors.startDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Start Date is required!</Text></View>}
+                            {errors.startDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Start Date is required!</Text></View>}
                         </View>
                     }
 
@@ -440,10 +394,10 @@ export default function AddProject() {
                                     mode={'outlined'}
                                     maxLength={12}
                                     outlineStyle={{
-                                        borderRadius: 12,
+                                        borderRadius: hp(1.2),
                                         borderColor: errors.endDate ? 'red' : '#6237A0'
                                     }}
-                                    style={{ backgroundColor: 'white', marginTop: 10 }}
+                                    style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                                     onChangeText={setEndDate}
                                     editable={false}
                                     textColor='#28104E'
@@ -451,7 +405,7 @@ export default function AddProject() {
                                     activeOutlineColor="#6237a0"
                                 />
                             </Pressable>
-                            {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>End Date is required!</Text></View>}
+                            {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>End Date is required!</Text></View>}
                         </View>
                     }
 
@@ -460,73 +414,75 @@ export default function AddProject() {
                             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                             style={{ flex: 1, backgroundColor: 'white' }}
                         >
-                            <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18 }}>
+                            <View style={{ marginTop: hp(2), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: wp(4), width: wp(92), alignSelf: 'center' }}>
                                 <Text style={{
-                                    color: '#6237A0', fontSize: 24, fontWeight: 'bold',
+                                    color: '#6237A0', fontSize: hp(3), fontWeight: 'bold',
                                 }}>Add Members</Text>
                                 <TouchableOpacity onPress={() => setIsSearchModalVisible(false)}>
-                                    <Text style={{ fontSize: 17, fontWeight: '400' }}>Close</Text>
+                                    <Text style={{ fontSize: hp(2), fontWeight: '400' }}>Close</Text>
                                 </TouchableOpacity>
 
                             </View>
-                            <View style={{ marginHorizontal: 15, marginVertical: 18, backgroundColor: 'white', height: '80%' }}>
+                            <View style={{ marginHorizontal: wp(4), marginVertical: hp(2), backgroundColor: 'white', height: hp(70) }}>
                                 {searchLoading ? (
                                     <ActivityIndicator size={'large'} color={'#6237a0'} />
                                 ) : (
-                                    <View style={{ height: '100%' }}>
+                                    <View style={{}}>
                                         <Searchbar
                                             placeholder='Search People...'
                                             autoCapitalize='none'
                                             autoCorrect={false}
                                             value={seachQuery}
                                             onChangeText={(query) => handleSearch(query)}
-                                            style={{ backgroundColor: '#f2e6ff', borderRadius: 10 }}
+                                            style={{ backgroundColor: '#f2e6ff', borderRadius: hp(1.4), width: wp(90), alignSelf: 'center'}}
                                         />
                                         {searchError ? (
-                                            <Text style={{ marginTop: 12, alignSelf: 'center' }}>Error Fetching Members!</Text>
+                                            <Text style={{ marginTop: hp(4), alignSelf: 'center', fontSize: hp(1.8) }}>Error Fetching Members!</Text>
                                         ) : (
-                                            <FlatList
-                                                style={{ height: '100%', marginVertical: 2, }}
-                                                data={searchData}
-                                                keyExtractor={(item) => item.user_id}
-                                                renderItem={({ item }) => (
+                                            <View style={{ backgroundColor: '#fff', maxHeight: hp(70) }}>
+                                                <FlatList
+                                                    style={{ marginVertical: hp(1) }}
+                                                    data={searchData}
+                                                    keyExtractor={(item) => item.user_id}
+                                                    renderItem={({ item }) => (
 
-                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 
-                                                        <TouchableOpacity onPress={() => {
-                                                            updateMemberList((item?.user_id).toString())
-                                                            updateThubnailList(item?.profile)
-                                                        }} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 12 }}>
-                                                            <Image source={{ uri: item?.profile }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+                                                            <TouchableOpacity onPress={() => {
+                                                                updateMemberList((item?.user_id).toString())
+                                                                updateThubnailList(item?.profile)
+                                                            }} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: wp(2), marginTop: hp(2) }}>
+                                                                <Image source={{ uri: item?.profile }} style={{ width: wp(13), height: wp(13), borderRadius: hp(50) }} />
+                                                                <View>
+                                                                    <Text style={{ fontSize: hp(2.2), marginLeft: wp(2), fontWeight: '600' }}>{(item?.firstName)} {(item.lastName)}</Text>
+                                                                    <Text style={{ fontSize: hp(1.9), marginLeft: wp(2), color: 'gray', fontWeight: '300' }}>{item.designation}</Text>
+                                                                </View>
+
+                                                            </TouchableOpacity>
                                                             <View>
-                                                                <Text style={{ fontSize: 17, marginLeft: 10, fontWeight: '600' }}>{(item?.firstName)} {(item.lastName)}</Text>
-                                                                <Text style={{ fontSize: 14, marginLeft: 10, color: 'gray', fontWeight: '300' }}>{item.designation}</Text>
+                                                                <CheckBox
+                                                                    disabled={false}
+                                                                    value={selectedMembers.includes((item?.user_id).toString())}
+                                                                    onValueChange={(newValue) => {
+                                                                        updateMemberList((item?.user_id).toString())
+                                                                        updateThubnailList(item?.profile)
+                                                                    }}
+                                                                    style={{ marginRight: wp(4) }}
+                                                                    color={'#6237a0'}
+                                                                />
                                                             </View>
-
-                                                        </TouchableOpacity>
-                                                        <View>
-                                                            <CheckBox
-                                                                disabled={false}
-                                                                value={selectedMembers.includes((item?.user_id).toString())}
-                                                                onValueChange={(newValue) => {
-                                                                    updateMemberList((item?.user_id).toString())
-                                                                    updateThubnailList(item?.profile)
-                                                                }}
-                                                                style={{ marginRight: 10 }}
-                                                                color={'#6237a0'}
-                                                            />
                                                         </View>
-                                                    </View>
-                                                )}
-                                            />
+                                                    )}
+                                                />
+                                            </View>
                                         )}
                                     </View>
 
                                 )}
                             </View>
-                            <View style={{ marginHorizontal: 15 }}>
+                            <View style={{ marginHorizontal: wp(4) }}>
                                 <TouchableOpacity style={styles.modalButton} onPress={() => setIsSearchModalVisible(false)}>
-                                    <Text style={{ fontWeight: 'bold', color: 'white' }}>SAVE CHANGES</Text>
+                                    <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(2) }}>SAVE CHANGES</Text>
                                 </TouchableOpacity>
                             </View>
                         </KeyboardAvoidingView>
@@ -537,121 +493,123 @@ export default function AddProject() {
                             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                             style={{ flex: 1, backgroundColor: 'white' }}
                         >
-                            <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18 }}>
+                            <View style={{ marginTop: hp(2), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: wp(4), width: wp(92), alignSelf: 'center' }}>
                                 <Text style={{
-                                    color: '#6237A0', fontSize: 24, fontWeight: 'bold',
+                                    color: '#6237A0', fontSize: hp(3), fontWeight: 'bold'
                                 }}>Add Managers</Text>
                                 <TouchableOpacity onPress={() => setIsManagerListModalVisible(false)}>
-                                    <Text style={{ fontSize: 17, fontWeight: '400' }}>Close</Text>
+                                    <Text style={{ fontSize: hp(2), fontWeight: '400' }}>Close</Text>
                                 </TouchableOpacity>
 
                             </View>
-                            <View style={{ marginHorizontal: 15, marginVertical: 18, backgroundColor: 'white', height: '80%' }}>
+                            <View style={{ marginHorizontal: wp(4), marginVertical: hp(2), backgroundColor: 'white', height: hp(70) }}>
                                 {searchLoading ? (
                                     <ActivityIndicator size={'large'} color={'#6237a0'} />
                                 ) : (
-                                    <View style={{ height: '100%' }}>
+                                    <View style={{}}>
                                         <Searchbar
                                             placeholder='Search People...'
                                             autoCapitalize='none'
                                             autoCorrect={false}
                                             value={managerSearchQuery}
                                             onChangeText={(query) => handleManagerSearch(query)}
-                                            style={{ backgroundColor: '#f2e6ff', borderRadius: 10 }}
+                                            style={{ backgroundColor: '#f2e6ff', borderRadius: hp(1.4), width: wp(90), alignSelf: 'center'}}
                                         />
                                         {searchError ? (
-                                            <Text style={{ marginTop: 12, alignSelf: 'center' }}>Error Fetching Managers!</Text>
+                                            <Text style={{ marginTop: hp(4), alignSelf: 'center', fontSize: hp(1.8) }}>Error Fetching Managers!</Text>
                                         ) : (
-                                            <FlatList
-                                                style={{ height: '100%', marginVertical: 2, }}
-                                                data={searchData}
-                                                keyExtractor={(item) => item.user_id}
-                                                renderItem={({ item }) => (
+                                            <View style={{ backgroundColor: '#fff', maxHeight: hp(70) }}>
+                                                <FlatList
+                                                    style={{ marginVertical: hp(1) }}
+                                                    data={searchData}
+                                                    keyExtractor={(item) => item.user_id}
+                                                    renderItem={({ item }) => (
 
-                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
 
-                                                        <TouchableOpacity onPress={() => {
-                                                            updateManagerList((item?.user_id).toString())
-                                                            updateManagerThubnailList(item?.profile)
-                                                        }} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 12 }}>
-                                                            <Image source={{ uri: item?.profile }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+                                                            <TouchableOpacity onPress={() => {
+                                                                updateManagerList((item?.user_id).toString())
+                                                                updateManagerThubnailList(item?.profile)
+                                                            }} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: wp(2), marginTop: hp(2) }}>
+                                                                <Image source={{ uri: item?.profile }} style={{ width: wp(13), height: wp(13), borderRadius: hp(2) }} />
+                                                                <View>
+                                                                    <Text style={{ fontSize: hp(2.2), marginLeft: wp(2), fontWeight: '600' }}>{(item?.firstName)} {(item.lastName)}</Text>
+                                                                    <Text style={{ fontSize: hp(1.9), marginLeft: wp(2), color: 'gray', fontWeight: '300' }}>{item.designation}</Text>
+                                                                </View>
+
+                                                            </TouchableOpacity>
                                                             <View>
-                                                                <Text style={{ fontSize: 17, marginLeft: 10, fontWeight: '600' }}>{(item?.firstName)} {(item.lastName)}</Text>
-                                                                <Text style={{ fontSize: 14, marginLeft: 10, color: 'gray', fontWeight: '300' }}>{item.designation}</Text>
+                                                                <CheckBox
+                                                                    disabled={false}
+                                                                    value={selectedManagers.includes((item?.user_id).toString())}
+                                                                    onValueChange={(newValue) => {
+                                                                        updateManagerList((item?.user_id).toString())
+                                                                        updateManagerThubnailList(item?.profile)
+                                                                    }}
+                                                                    style={{ marginRight: wp(4) }}
+                                                                    color={'#6237a0'}
+                                                                />
                                                             </View>
-
-                                                        </TouchableOpacity>
-                                                        <View>
-                                                            <CheckBox
-                                                                disabled={false}
-                                                                value={selectedManagers.includes((item?.user_id).toString())}
-                                                                onValueChange={(newValue) => {
-                                                                    updateManagerList((item?.user_id).toString())
-                                                                    updateManagerThubnailList(item?.profile)
-                                                                }}
-                                                                style={{ marginRight: 10 }}
-                                                                color={'#6237a0'}
-                                                            />
                                                         </View>
-                                                    </View>
-                                                )}
-                                            />
+                                                    )}
+                                                />
+                                            </View>
                                         )}
                                     </View>
 
                                 )}
                             </View>
-                            <View style={{ marginHorizontal: 15 }}>
+                            <View style={{ marginHorizontal: wp(4) }}>
                                 <TouchableOpacity style={styles.modalButton} onPress={() => setIsManagerListModalVisible(false)}>
-                                    <Text style={{ fontWeight: 'bold', color: 'white' }}>SAVE CHANGES</Text>
+                                    <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(2) }}>SAVE CHANGES</Text>
                                 </TouchableOpacity>
                             </View>
                         </KeyboardAvoidingView>
                     </Modal>
 
-                    <View style={{ marginTop: 15 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text style={{ fontSize: 17 }}>Managers: <Text style={{ color: 'gray', fontWeight: '300' }}>{selectedManagers.length} Members</Text></Text>
+                    <View style={{ marginTop: hp(2) }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: wp(92) }}>
+                            <Text style={{ fontSize: hp(2) }}>Managers: <Text style={{ color: 'gray', fontWeight: '300' }}>{selectedManagers.length} Members</Text></Text>
                             <TouchableOpacity onPress={() => setIsManagerListModalVisible(true)}>
                                 <Image source={require('../../assets/Images/plus.png')} style={{
-                                    width: 42, height: 42, borderRadius: 25,
-                                    marginLeft: -18,
+                                    width: wp(10), height: wp(10), borderRadius: hp(50),
+                                    // marginLeft: -18,
                                 }} />
                             </TouchableOpacity>
                         </View>
-                        <ScrollView horizontal style={{ flexDirection: 'row', marginTop: 10, paddingLeft: 0 }}>
+                        <ScrollView horizontal style={{ flexDirection: 'row', marginTop: hp(1) }}>
                             {managerThumbnails.map((thumbnail, index) => {
                                 return <Image key={index} source={{ uri: thumbnail }} style={{
-                                    width: 50, height: 50, borderRadius: 25,
-                                    marginLeft: index == 0 ? 0 : -18,
+                                    width: wp(12), height: wp(12), borderRadius: hp(50),
+                                    marginLeft: index == 0 ? 0 : -wp(5),
                                     borderWidth: 2.5,
                                     borderColor: 'white'
                                 }} />
                             })}
                         </ScrollView>
                     </View>
-                    <View style={{ marginTop: 15 }}>
+                    <View style={{ marginTop: hp(2) }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text style={{ fontSize: 17 }}>Team: <Text style={{ color: 'gray', fontWeight: '300' }}>{selectedMembers.length} Members</Text></Text>
+                            <Text style={{ fontSize: hp(2) }}>Team: <Text style={{ color: 'gray', fontWeight: '300' }}>{selectedMembers.length} Members</Text></Text>
                             <TouchableOpacity onPress={() => setIsSearchModalVisible(true)}>
                                 <Image source={require('../../assets/Images/plus.png')} style={{
-                                    width: 42, height: 42, borderRadius: 25,
-                                    marginLeft: -18,
+                                    width: wp(10), height: wp(10), borderRadius: hp(50),
+                                    // marginLeft: -18,
                                 }} />
                             </TouchableOpacity>
                         </View>
-                        <ScrollView horizontal style={{ flexDirection: 'row', marginTop: 10, paddingLeft: 0 }}>
+                        <ScrollView horizontal style={{ flexDirection: 'row', marginTop: hp(1), paddingLeft: 0 }}>
                             {thumbnails.map((thumbnail, index) => {
                                 return <Image key={index} source={{ uri: thumbnail }} style={{
-                                    width: 50, height: 50, borderRadius: 25,
-                                    marginLeft: index == 0 ? 0 : -18,
+                                    width: wp(12), height: wp(12), borderRadius: hp(50),
+                                    marginLeft: index == 0 ? 0 : -wp(5),
                                 }} />
                             })}
                         </ScrollView>
                     </View>
-                    {submitButtonLoading ? (<View style={{marginVertical: 18}}><ActivityIndicator size={'large'} color={"#6237a0"} /></View>) : (
+                    {submitButtonLoading ? (<View style={{ marginVertical: hp(2.5) }}><ActivityIndicator size={'large'} color={"#6237a0"} /></View>) : (
                         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                            <Text style={{ fontWeight: 'bold', color: 'white' }}>CREATE</Text>
+                            <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(1.8) }}>CREATE</Text>
                         </TouchableOpacity>
                     )}
 
@@ -665,71 +623,56 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingVertical: 20,
-        // paddingHorizontal: 18,
         backgroundColor: '#fff'
     },
     heading: {
         color: '#6237A0',
-        fontSize: 24,
+        fontSize: hp(3.6),
         fontWeight: 'bold',
-        paddingHorizontal: 18,
+        paddingHorizontal: wp(4),
     },
     form: {
-        paddingHorizontal: 18
+        paddingHorizontal: wp(4)
     },
     button: {
         backgroundColor: '#6237a0',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
-        borderRadius: 15,
-        marginVertical: 18,
-        // width: '47%',
+        padding: wp(3),
+        borderRadius: hp(1.4),
+        marginVertical: hp(2.5),
     },
     modalButton: {
         backgroundColor: '#6237a0',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
-        borderRadius: 10,
+        padding: wp(4),
+        borderRadius: hp(1.4),
     },
-
 
     dropdown: {
-        marginTop: 15,
-        height: 52,
+        marginTop: hp(1.5),
+        height: hp(5),
         backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 12,
-        // shadowColor: '#000',
-        // shadowOffset: {
-        //     width: 0,
-        //     height: 1,
-        // },
-        // shadowOpacity: 0.2,
-        // shadowRadius: 1.41,
-
-        // elevation: 2,
+        borderRadius: hp(1.2),
+        padding: hp(1),
     },
-    // icon: {
-    //     marginRight: 5,
-    // },
     item: {
-        paddingHorizontal: 18,
-        paddingVertical: 10,
+        paddingHorizontal: hp(2),
+        paddingVertical: hp(1),
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
     textItem: {
         flex: 1,
-        fontSize: 16,
+        fontSize: hp(1.8),
     },
     placeholderStyle: {
-        fontSize: 16,
+        fontSize: hp(1.8),
     },
     selectedTextStyle: {
-        fontSize: 16,
+        fontSize: hp(1.8),
     },
     iconStyle: {
         width: 20,

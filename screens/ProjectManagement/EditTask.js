@@ -1,6 +1,6 @@
 import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useContext, useEffect, useState } from 'react'
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { Searchbar, TextInput } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Checkbox from 'expo-checkbox';
@@ -8,6 +8,8 @@ import { BASE_PROJECT_URL } from '../../utils/APIConstants';
 import { UserContext } from '../../context/userContext';
 import { useToast } from 'react-native-toast-notifications';
 import axios from 'axios';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 export default function EditTask({ route, navigation }) {
 
@@ -139,13 +141,6 @@ export default function EditTask({ route, navigation }) {
         }
     }
 
-    // const getMemberIds = () => {
-    //     let temp = task.users.map((user) => {
-    //         return (user.user_id).toString()
-    //     })
-    //     setSelectedMembers(temp);
-    // }
-
     const fetchEmployees = () => {
         let url = `${BASE_PROJECT_URL}/get-employees`
         let config = {
@@ -184,8 +179,6 @@ export default function EditTask({ route, navigation }) {
 
     useEffect(() => {
         console.log("on Edit task screen:", task);
-        // getMemberIds();
-        // fetchEmployees();
     }, [])
 
     return (
@@ -193,29 +186,28 @@ export default function EditTask({ route, navigation }) {
             <StatusBar backgroundColor={"#fff"} barStyle={'dark-content'} />
             <ScrollView>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <TouchableOpacity style={{ marginHorizontal: 12 }} onPress={() => navigation.goBack()}>
-                        <AntDesign name="back" size={26} color="#6237a0" />
+                    <TouchableOpacity style={{ marginLeft: wp(4) }} onPress={() => navigation.goBack()}>
+                        <AntDesign name="back" size={hp(3.3)} color="#6237a0" />
                     </TouchableOpacity>
                     <Text style={styles.heading}>Edit Task</Text>
                 </View>
-                {/* <Text style={styles.heading}>New Project</Text> */}
-                <Text style={{ paddingHorizontal: 18, marginTop: 8, fontWeight: '300', color: 'gray' }}>Edit the information below to update your Task.</Text>
+                <Text style={{ paddingHorizontal: wp(4), fontSize: hp(1.8), marginTop: hp(1), fontWeight: '300', color: 'gray', width: wp(92) }}>Edit the information below to update your Task.</Text>
                 <View style={styles.form}>
                     <TextInput
                         label="Title"
                         value={title}
                         mode={'outlined'}
                         outlineStyle={{
-                            borderRadius: 12,
+                            borderRadius: hp(1.2),
                             borderColor: errors.title ? 'red' : '#6237A0'
                         }}
-                        style={{ backgroundColor: 'white', marginTop: 12 }}
+                        style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                         onChangeText={text => setTitle(text)}
                         textColor='#28104E'
                         selectionColor='#6237a0'
                         activeOutlineColor="#6237a0"
                     />
-                    {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Title is required!</Text></View>}
+                    {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Title is required!</Text></View>}
                     <TextInput
                         label="Description"
                         multiline
@@ -223,16 +215,16 @@ export default function EditTask({ route, navigation }) {
                         value={description}
                         mode={'outlined'}
                         outlineStyle={{
-                            borderRadius: 12,
+                            borderRadius: hp(1.2),
                             borderColor: errors.description ? 'red' : '#6237A0'
                         }}
-                        style={{ backgroundColor: 'white', marginTop: 10 }}
+                        style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                         onChangeText={text => setDescription(text)}
                         textColor='#28104E'
                         selectionColor='#6237a0'
                         activeOutlineColor="#6237a0"
                     />
-                    {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Description is required!</Text></View>}
+                    {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Description is required!</Text></View>}
 
                     {showEndDatePicker &&
                         <DateTimePicker
@@ -253,10 +245,10 @@ export default function EditTask({ route, navigation }) {
                                 mode={'outlined'}
                                 maxLength={12}
                                 outlineStyle={{
-                                    borderRadius: 12,
+                                    borderRadius: hp(1.2),
                                     borderColor: errors.endDate ? 'red' : '#6237A0'
                                 }}
-                                style={{ backgroundColor: 'white', marginTop: 10 }}
+                                style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                                 onChangeText={setEndDate}
                                 editable={false}
                                 textColor='#28104E'
@@ -264,12 +256,12 @@ export default function EditTask({ route, navigation }) {
                                 activeOutlineColor="#6237a0"
                             />
                         </Pressable>
-                        {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>End Date is required!</Text></View>}
+                        {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>End Date is required!</Text></View>}
                     </View>
                     }
-                    {submitButtonLoading ? (<View style={{ marginVertical: 18 }}><ActivityIndicator size={'large'} color={"#6237a0"} /></View>) : (
+                    {submitButtonLoading ? (<View style={{ marginVertical: hp(2.5) }}><ActivityIndicator size={'large'} color={"#6237a0"} /></View>) : (
                         <TouchableOpacity style={styles.modalButton} onPress={handleSubmit}>
-                            <Text style={{ fontWeight: 'bold', color: 'white' }}>SAVE CHANGES</Text>
+                            <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(1.8) }}>SAVE CHANGES</Text>
                         </TouchableOpacity>
                     )}
                 </View>
@@ -281,42 +273,25 @@ export default function EditTask({ route, navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingVertical: 20,
+        paddingVertical: hp(2),
         // paddingHorizontal: 18,
         backgroundColor: '#fff'
     },
     heading: {
         color: '#6237A0',
-        fontSize: 24,
+        fontSize: hp(3.2),
         fontWeight: 'bold',
-        // paddingHorizontal: 18,
+        paddingHorizontal: wp(2),
     },
     form: {
-        paddingHorizontal: 18
-    },
-    modalContainer: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        justifyContent: 'flex-end',
-    },
-    modal: {
-        backgroundColor: 'white',
-        borderTopLeftRadius: 25,
-        borderTopRightRadius: 25,
-        padding: 18,
+        paddingHorizontal: wp(4)
     },
     modalButton: {
         backgroundColor: '#6237a0',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
-        borderRadius: 15,
-        marginTop: 18,
-    },
-    modalHeading: {
-        color: '#6237A0',
-        fontSize: 24,
-        fontWeight: 'bold',
-        // paddingHorizontal: 18,
+        padding: wp(4),
+        borderRadius: hp(2),
+        marginVertical: hp(2.5),
     },
 })

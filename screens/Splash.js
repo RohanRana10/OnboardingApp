@@ -1,19 +1,18 @@
 import { View, StyleSheet, StatusBar, Image } from 'react-native'
 import React, { useContext, useEffect } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
-import COLORS from '../constants/colors'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { BASE_AUTH_URL, BASE_ONBOARD_URL } from '../utils/APIConstants';
 import axios from 'axios';
 import { useToast } from 'react-native-toast-notifications';
 import { UserContext } from '../context/userContext'
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default function Splash({ navigation }) {
 
     const toast = useToast();
     const context = useContext(UserContext);
     let token;
-    const { saveUserData, saveUserDashboardinfo, user } = context;
+    const { saveUserData, saveUserDashboardinfo } = context;
 
     const verifyToken = async () => {
         token = await AsyncStorage.getItem('token');
@@ -85,7 +84,6 @@ export default function Splash({ navigation }) {
                     console.log("dashboard info at splash page fetched :", JSON.stringify(response.data.data));
                     saveUserDashboardinfo(response.data.data);
                     navigation.replace('Dashboard');
-                    // navigation.replace('SectionSelection');
                 }
                 else {
                     console.log(JSON.stringify(response.data));
@@ -115,8 +113,8 @@ export default function Splash({ navigation }) {
     return (
         <View style={styles.container}><StatusBar barStyle={'dark-content'} backgroundColor={'#fff'} />
             <Image style={{
-                width: 100,
-                height: 100,
+                width: wp(20),
+                height: wp(20),
             }} source={require('../assets/New.gif')}>
             </Image>
         </View>

@@ -9,6 +9,9 @@ import { useToast } from 'react-native-toast-notifications';
 import axios from 'axios';
 import { BASE_PROJECT_URL } from '../../utils/APIConstants';
 import Checkbox from 'expo-checkbox';
+import filter from 'lodash.filter';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, maxYear, maxMonth, maxDay }) => {
     const toast = useToast();
@@ -145,13 +148,13 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
         }
     }
 
-    const renderItem = item => {
-        return (
-            <View style={styles.item}>
-                <Text style={styles.textItem}>{item.label}</Text>
-            </View>
-        );
-    };
+    // const renderItem = item => {
+    //     return (
+    //         <View style={styles.item}>
+    //             <Text style={styles.textItem}>{item.label}</Text>
+    //         </View>
+    //     );
+    // };
 
     const updateMemberList = (username) => {
         if (selectedMembers.includes(username)) {
@@ -169,30 +172,30 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
         }
     }
 
-    const fetchEmployees = () => {
-        let url = `${BASE_PROJECT_URL}/get-employees`
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: url,
-            headers: {
-                'token': user.userToken
-            }
-        };
+    // const fetchEmployees = () => {
+    //     let url = `${BASE_PROJECT_URL}/get-employees`
+    //     let config = {
+    //         method: 'post',
+    //         maxBodyLength: Infinity,
+    //         url: url,
+    //         headers: {
+    //             'token': user.userToken
+    //         }
+    //     };
 
-        axios.request(config)
-            .then((response) => {
-                console.log(JSON.stringify(response.data.data));
-                setSearchData(response.data.data);
-                setFullSearchData(response.data.data);
-                setSearchLoading(false);
-            })
-            .catch((error) => {
-                console.log(error);
-                setSearchError(error);
-                setSearchLoading(false);
-            });
-    }
+    //     axios.request(config)
+    //         .then((response) => {
+    //             console.log(JSON.stringify(response.data.data));
+    //             setSearchData(response.data.data);
+    //             setFullSearchData(response.data.data);
+    //             setSearchLoading(false);
+    //         })
+    //         .catch((error) => {
+    //             console.log(error);
+    //             setSearchError(error);
+    //             setSearchLoading(false);
+    //         });
+    // }
 
     const qwerty = () => {
         if (!users) {
@@ -222,6 +225,15 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
         setSearchData(filteredData);
     }
 
+    const contains = ({ firstName, lastName, designation }, query) => {
+        if ((firstName.toLowerCase()).includes(query) || (lastName.toLowerCase()).includes(query)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
 
 
     return (
@@ -239,8 +251,8 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                 >
                     <View style={styles.modal}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <TouchableOpacity style={{ marginRight: 8 }} onPress={onClose}>
-                                <AntDesign name="back" size={26} color="#6237a0" />
+                            <TouchableOpacity style={{ marginRight: wp(1.5) }} onPress={onClose}>
+                                <AntDesign name="back" size={hp(3.5)} color="#6237a0" />
                             </TouchableOpacity>
                             <Text style={styles.modalHeading}>New Sub-Task</Text>
                         </View>
@@ -249,16 +261,16 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                             value={title}
                             mode={'outlined'}
                             outlineStyle={{
-                                borderRadius: 12,
+                                borderRadius: hp(1.2),
                                 borderColor: errors.title ? 'red' : '#6237A0'
                             }}
-                            style={{ backgroundColor: 'white', marginTop: 12 }}
+                            style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                             onChangeText={text => setTitle(text)}
                             textColor='#28104E'
                             selectionColor='#6237a0'
                             activeOutlineColor="#6237a0"
                         />
-                        {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Title is required!</Text></View>}
+                        {errors.title && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Title is required!</Text></View>}
 
                         <TextInput
                             label="Description"
@@ -267,16 +279,16 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                             value={description}
                             mode={'outlined'}
                             outlineStyle={{
-                                borderRadius: 12,
+                                borderRadius: hp(1.2),
                                 borderColor: errors.description ? 'red' : '#6237A0'
                             }}
-                            style={{ backgroundColor: 'white', marginTop: 10 }}
+                            style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92) }}
                             onChangeText={text => setDescription(text)}
                             textColor='#28104E'
                             selectionColor='#6237a0'
                             activeOutlineColor="#6237a0"
                         />
-                        {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Description is required!</Text></View>}
+                        {errors.description && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>Description is required!</Text></View>}
 
                         {showEndDatePicker &&
                             <DateTimePicker
@@ -297,10 +309,10 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                                     mode={'outlined'}
                                     maxLength={12}
                                     outlineStyle={{
-                                        borderRadius: 12,
+                                        borderRadius: hp(1.2),
                                         borderColor: errors.endDate ? 'red' : '#6237A0'
                                     }}
-                                    style={{ backgroundColor: 'white', marginTop: 10 }}
+                                    style={{ backgroundColor: 'white',marginTop: hp(1), width: wp(92) }}
                                     onChangeText={setEndDate}
                                     editable={false}
                                     textColor='#28104E'
@@ -308,7 +320,7 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                                     activeOutlineColor="#6237a0"
                                 />
                             </Pressable>
-                            {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>End Date is required!</Text></View>}
+                            {errors.endDate && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={hp(3)} color="red" /><Text style={{ color: 'black', marginLeft: wp(1), fontSize: hp(1.5) }}>End Date is required!</Text></View>}
                         </View>
                         }
                         {/* <Dropdown
@@ -330,13 +342,13 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                         />
                         {errors.status && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Status is required!</Text></View>} */}
 
-                        <View style={{ marginTop: 15 }}>
+                        <View style={{ marginTop: hp(2) }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Text style={{ fontSize: 17 }}>Assign Members: <Text style={{ color: 'gray', fontWeight: '300' }}>{selectedMembers.length} People</Text></Text>
+                                <Text style={{ fontSize: hp(2) }}>Assign Members: <Text style={{ color: 'gray', fontWeight: '300' }}>{selectedMembers.length} People</Text></Text>
                                 <TouchableOpacity onPress={() => setIsSearchModalVisible(true)}>
                                     <Image source={require('../../assets/Images/plus.png')} style={{
-                                        width: 42, height: 42, borderRadius: 25,
-                                        marginLeft: -18,
+                                        width: wp(10), height: wp(10), borderRadius: hp(50),
+                                        // marginLeft: -wp(4.5),
                                     }} />
                                 </TouchableOpacity>
                             </View>
@@ -349,9 +361,9 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                                 })}
                             </ScrollView> */}
                         </View>
-                        {submitButtonLoading ? (<View style={{ marginVertical: 18 }}><ActivityIndicator size={'large'} color={"#6237a0"} /></View>) : (
+                        {submitButtonLoading ? (<View style={{ marginVertical: hp(2) }}><ActivityIndicator size={'large'} color={"#6237a0"} /></View>) : (
                             <TouchableOpacity style={styles.modalButton} onPress={handleSubmit}>
-                                <Text style={{ fontWeight: 'bold', color: 'white' }}>CREATE</Text>
+                                <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(1.8) }}>CREATE</Text>
                             </TouchableOpacity>
                         )}
 
@@ -362,33 +374,34 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                         style={{ flex: 1, backgroundColor: 'white' }}
                     >
-                        <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 18 }}>
+                        <View style={{ marginTop: hp(2), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: wp(4), width: wp(92), alignSelf: 'center' }}>
                             <Text style={{
-                                color: '#6237A0', fontSize: 24, fontWeight: 'bold',
+                                color: '#6237A0',  fontSize: hp(3), fontWeight: 'bold',
                             }}>Add Members</Text>
                             <TouchableOpacity onPress={() => setIsSearchModalVisible(false)}>
-                                <Text style={{ fontSize: 17, fontWeight: '400' }}>Close</Text>
+                                <Text style={{ fontSize: hp(2), fontWeight: '400' }}>Close</Text>
                             </TouchableOpacity>
 
                         </View>
-                        <View style={{ marginHorizontal: 15, marginVertical: 18, backgroundColor: 'white', height: '80%' }}>
+                        <View style={{  marginHorizontal: wp(4), marginVertical: hp(2), backgroundColor: 'white', height: hp(70), backgroundColor: '#fff' }}>
                             {searchLoading ? (
                                 <ActivityIndicator size={'large'} color={'#6237a0'} />
                             ) : (
-                                <View style={{ height: '100%' }}>
+                                <View style={{}}>
                                     <Searchbar
                                         placeholder='Search People...'
                                         autoCapitalize='none'
                                         autoCorrect={false}
                                         value={seachQuery}
                                         onChangeText={(query) => handleSearch(query)}
-                                        style={{ backgroundColor: '#f2e6ff', borderRadius: 10 }}
+                                        style={{ backgroundColor: '#f2e6ff', borderRadius: hp(2) }}
                                     />
                                     {searchError ? (
-                                        <Text style={{ marginTop: 12, alignSelf: 'center' }}>Error Fetching Members!</Text>
+                                        <Text style={{  marginTop: hp(4), alignSelf: 'center', fontSize: hp(1.8) }}>Error Fetching Members!</Text>
                                     ) : (
+                                        <View style={{backgroundColor: '#fff', maxHeight: hp(70)}}>
                                         <FlatList
-                                            style={{ height: '100%', marginVertical: 2, }}
+                                            style={{ marginVertical: hp(1)  }}
                                             data={searchData}
                                             keyExtractor={(item) => item.user_id}
                                             renderItem={({ item }) => (
@@ -398,13 +411,12 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                                                     <TouchableOpacity onPress={() => {
                                                         updateMemberList((item?.user_id).toString())
                                                         updateThubnailList(item?.profile)
-                                                    }} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 10, marginTop: 12 }}>
-                                                        <Image source={{ uri: item?.profile }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+                                                    }} style={{flexDirection: 'row', alignItems: 'center', marginLeft: wp(2), marginTop: hp(2) }}>
+                                                        <Image source={{ uri: item?.profile }} style={{ width: wp(12), height: wp(12), borderRadius: hp(50) }} />
                                                         <View>
-                                                            <Text style={{ fontSize: 17, marginLeft: 10, fontWeight: '600' }}>{(item.firstName ? item.firstName : "Name")} {(item.lastName)}</Text>
-                                                            <Text style={{ fontSize: 14, marginLeft: 10, color: 'gray', fontWeight: '300' }}>{item.designation ? item.designation : "Designation"}</Text>
+                                                            <Text style={{ fontSize: hp(2.2), marginLeft: wp(2), fontWeight: '600' }}>{(item.firstName ? item.firstName : "Name")} {(item.lastName)}</Text>
+                                                            <Text style={{ fontSize: hp(1.9), marginLeft: wp(2), color: 'gray', fontWeight: '300' }}>{item.designation ? item.designation : "Designation"}</Text>
                                                         </View>
-
                                                     </TouchableOpacity>
                                                     <View>
                                                         <Checkbox
@@ -414,21 +426,21 @@ const HalfScreenModal = ({ isVisible, onClose, taskId, fetchTaskDetails, users, 
                                                                 updateMemberList((item?.user_id).toString())
                                                                 updateThubnailList(item?.profile)
                                                             }}
-                                                            style={{ marginRight: 10 }}
+                                                            style={{ marginRight: wp(4) }}
                                                             color={'#6237a0'}
                                                         />
                                                     </View>
                                                 </View>
                                             )}
-                                        />
+                                        /></View>
                                     )}
                                 </View>
 
                             )}
                         </View>
-                        <View style={{ marginHorizontal: 15 }}>
+                        <View style={{ marginHorizontal: wp(4) }}>
                             <TouchableOpacity style={styles.modalButton} onPress={() => setIsSearchModalVisible(false)}>
-                                <Text style={{ fontWeight: 'bold', color: 'white' }}>SAVE CHANGES</Text>
+                                <Text style={{ fontWeight: 'bold', color: 'white', fontSize: hp(2) }}>SAVE CHANGES</Text>
                             </TouchableOpacity>
                         </View>
                     </KeyboardAvoidingView>
@@ -447,21 +459,21 @@ const styles = StyleSheet.create({
     },
     modal: {
         backgroundColor: 'white',
-        borderTopLeftRadius: 25,
-        borderTopRightRadius: 25,
-        padding: 18,
+        borderTopLeftRadius: hp(4.5),
+        borderTopRightRadius: hp(4.5),
+        padding: wp(4.5),
     },
     modalButton: {
         backgroundColor: '#6237a0',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 16,
-        borderRadius: 15,
-        marginTop: 18,
+        padding: wp(4),
+        borderRadius: hp(2),
+        marginTop: hp(2),
     },
     modalHeading: {
         color: '#6237A0',
-        fontSize: 24,
+        fontSize: hp(3),
         fontWeight: 'bold',
         // paddingHorizontal: 18,
     },

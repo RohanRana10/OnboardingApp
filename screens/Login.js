@@ -1,16 +1,13 @@
 import { useContext, useState } from 'react';
 import { StyleSheet, StatusBar, Text, View, Platform, Image, KeyboardAvoidingView, TouchableOpacity, Keyboard, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient';
-import COLORS from '../constants/colors';
-import Button from '../components/Button'
 import axios from 'axios';
-import { BASE_URL, BASE_AUTH_URL, BASE_ONBOARD_URL } from '../utils/APIConstants';
+import { BASE_AUTH_URL, BASE_ONBOARD_URL } from '../utils/APIConstants';
 import { useToast } from 'react-native-toast-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../context/userContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextInput } from 'react-native-paper';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 export default function Login({ navigation }) {
@@ -25,10 +22,6 @@ export default function Login({ navigation }) {
     let token;
 
     const { saveUserData, saveUserDashboardinfo, user } = context;
-
-    const togglePasswordVisibility = () => {
-        setIsPasswordVisible(!isPasswordVisible);
-    }
 
     const validateForm = () => {
         let errors = {};
@@ -94,7 +87,6 @@ export default function Login({ navigation }) {
                 else {
 
                     token = response.data.data.userToken;
-                    // console.log(token);
                     setToken(token);
                     saveUserData(response.data.data);
                     console.log("user info saved at login", response.data.data);
@@ -106,7 +98,7 @@ export default function Login({ navigation }) {
                         if (response.data.data.onboardingStatus) {
                             navigation.replace('SectionSelection');
                         }
-                        else{
+                        else {
                             fetchUserDashboard();
                         }
                     }
@@ -135,9 +127,8 @@ export default function Login({ navigation }) {
                 if (response.data.status.statusCode === 1) {
                     console.log("dashboard info at login page fetched :", JSON.stringify(response.data.data));
                     saveUserDashboardinfo(response.data.data);
-                    setLoading(false);
                     navigation.replace('Dashboard');
-                    // navigation.replace('SectionSelection');
+                    setLoading(false);
                 }
                 else {
                     console.log(JSON.stringify(response.data));
@@ -164,14 +155,10 @@ export default function Login({ navigation }) {
             <KeyboardAvoidingView behavior='padding' keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} style={styles.container}>
                 <StatusBar barStyle={'dark-content'} backgroundColor={'#fff'} />
                 <View style={styles.form}>
-                    {/* <Image source={require('../assets/New.gif')} style={styles.upperDial} /> */}
-                    {/* <Image source={require('../assets/New.gif')} style={styles.lowerDial} /> */}
                     <Image resizeMode='contain' style={styles.image} source={require('../assets/Images/ResotechLogoBlack.png')} />
                     <View style={styles.middleImageContainer}>
                         <Image resizeMode='contain' source={require('../assets/Images/MiddleImage.png')} style={styles.middleImage} />
                     </View>
-                    {/* <Text style={styles.label}>Username</Text> */}
-                    {/* <TextInput style={styles.input} onChangeText={setUsername} value={username} placeholder='Enter username' /> */}
                     <TextInput
                         label="Username"
                         value={username}
@@ -180,22 +167,14 @@ export default function Login({ navigation }) {
                             borderRadius: 12,
                             borderColor: errors.username ? 'red' : '#6237A0'
                         }}
-                        style={{ backgroundColor: 'white' }}
+                        style={{ backgroundColor: 'white', width: wp(92), alignSelf: 'center' }}
                         textColor='#28104E'
                         selectionColor='#6237a0'
                         activeOutlineColor="#6237a0"
                         onChangeText={text => setUsername(text)}
                     />
-                    {errors.username && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Username is required!</Text></View>}
-                    {/* <Text style={styles.label}>Password</Text> */}
-                    {/* <View style={styles.passwordContainer}>
-                            <TextInput style={styles.inputPassword} secureTextEntry={!isPasswordVisible} placeholder='Enter password' value={password} onChangeText={setPassword} />
-                            <View style={styles.eyeContainer}>
-                                <TouchableOpacity onPress={togglePasswordVisibility}>
-                                    <Ionicons size={20} name={isPasswordVisible ? 'eye-off' : 'eye'} color='#061621' />
-                                </TouchableOpacity>
-                            </View>
-                        </View> */}
+                    {errors.username && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: wp(1) }}>Username is required!</Text></View>}
+
                     <TextInput
                         label="Password"
                         value={password}
@@ -206,22 +185,22 @@ export default function Login({ navigation }) {
                             borderRadius: 12,
                             borderColor: errors.password ? 'red' : '#6237A0'
                         }}
-                        style={{ backgroundColor: 'white', marginTop: 10 }}
+                        style={{ backgroundColor: 'white', marginTop: hp(1), width: wp(92), alignSelf: 'center' }}
                         textColor='#28104E'
                         selectionColor='#6237a0'
                         activeOutlineColor="#6237a0"
                         onChangeText={text => setPassword(text)}
                     />
-                    {errors.password && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Password is required!</Text></View>}
+                    {errors.password && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: wp(1) }}>Password is required!</Text></View>}
                     <View style={styles.forgotPwdContainer}>
                         <TouchableOpacity onPress={forgotPassword}>
                             <Text style={styles.forgotPwdText}>Forgot Password?
                             </Text>
                         </TouchableOpacity>
                     </View>
-                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 18 }} /> :
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={"large"} style={{ marginTop: hp(2) }} /> :
                         <TouchableOpacity style={styles.loginButton} onPress={handleSubmit}>
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>LOGIN</Text>
+                            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: hp(1.8) }}>LOGIN</Text>
                         </TouchableOpacity>}
                 </View>
             </KeyboardAvoidingView>
@@ -233,101 +212,44 @@ const styles = StyleSheet.create({
     container: {
         justifyContent: 'center',
         flex: 1,
-        padding: 20,
+        padding: wp(4),
         backgroundColor: '#fff'
     },
-    upperDial: {
-        position: 'absolute',
-        left: -185,
-        top: -330,
-        width: 400,
-        height: 400
-    },
-    lowerDial: {
-        position: 'absolute',
-        left: 140,
-        top: 360,
-        width: 400,
-        height: 400
-    },
     form: {
-        // paddingHorizontal: 12,
-        // paddingVertical: 28,
         borderRadius: 30,
     },
-    label: {
-        fontSize: 16,
-        marginBottom: 8,
-        color: '#B3B6BB',
-        fontWeight: 'bold'
-    },
-    input: {
-        height: 40,
-        backgroundColor: 'white',
-        borderColor: '#ddd',
-        borderWidth: 1,
-        marginBottom: 15,
-        padding: 10,
-        borderRadius: 5,
-    },
-    inputPassword: {
-        height: 40,
-        width: '88%',
-        padding: 10,
-        borderRadius: 5,
-    },
     image: {
-        width: 180,
-        height: 50,
+        width: wp(45),
+        height: hp(6),
         alignSelf: 'center',
         alignSelf: 'flex-start',
-        // marginBottom: 20,
-    },
-    errorText: {
-        color: 'black',
-        marginBottom: 10,
-    },
-    loginButton: {
-        marginTop: 10,
-        padding: 20
     },
     forgotPwdContainer: {
         alignItems: 'flex-end',
+        marginTop: hp(1)
     },
     forgotPwdText: {
         color: 'gray',
-        paddingVertical: 5
-    },
-    passwordContainer: {
-        flexDirection: 'row',
-        backgroundColor: 'white',
-        height: 41,
-        marginBottom: 20,
-        borderWidth: 1,
-        borderRadius: 5,
-        borderColor: '#ddd',
-    },
-    eyeContainer: {
-        height: 40,
-        marginLeft: 5,
-        justifyContent: 'center'
+        paddingVertical: hp(1),
+        fontSize: hp(1.8)
     },
     loginButton: {
-        width: '100%',
+        width: wp(92),
         backgroundColor: '#6237A0',
-        height: 50,
+        height: hp(6.5),
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 10,
-        borderRadius: 12
+        marginTop: hp(2),
+        borderRadius: hp(1.4),
+        alignSelf: 'center'
     },
     middleImageContainer: {
-        marginTop: 20
+        marginTop: hp("0%")
     },
     middleImage: {
-        width: '100%',
-        height: 270,
-        // backgroundColor: 'cyan'
+        width: wp(90),
+        height: hp(40),
+        alignSelf: 'center'
     },
 });
 

@@ -3,6 +3,8 @@ import React, { useContext, useEffect, useRef } from 'react'
 import { Swipeable } from 'react-native-gesture-handler'
 import { AntDesign, Entypo, MaterialIcons } from '@expo/vector-icons';
 import { UserContext } from '../../context/userContext';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 export default function SubTask({ item, index, onComponentOpen, onEdit, onDelete, toggle }) {
     const ref = useRef();
@@ -12,12 +14,12 @@ export default function SubTask({ item, index, onComponentOpen, onEdit, onDelete
 
     const rightSwipe = (subtask) => {
         return (
-            <View style={{ justifyContent: 'center', backgroundColor: '#fff', marginBottom: 10, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ justifyContent: 'center', backgroundColor: '#fff', marginBottom: hp(0), flexDirection: 'row', alignItems: 'center' }}>
                 <TouchableOpacity onPress={() => {
                     onEdit(subtask);
                     ref.current.close();
-                }} style={{ backgroundColor: '#3d7bed', marginLeft: 14, width: 45, height: 45, alignItems: 'center', justifyContent: 'center', borderRadius: 100 }}>
-                    <AntDesign name="edit" size={22} color="white" />
+                }} style={{ backgroundColor: '#3d7bed', marginLeft: wp(4), width: wp(12), height: wp(12), alignItems: 'center', justifyContent: 'center', borderRadius: hp(50) }}>
+                    <AntDesign name="edit" size={hp(2.8)} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => {
                     Alert.alert(
@@ -35,8 +37,8 @@ export default function SubTask({ item, index, onComponentOpen, onEdit, onDelete
                             }
                         ]
                     );
-                }} style={{ backgroundColor: 'red', marginLeft: 14, width: 45, height: 45, alignItems: 'center', justifyContent: 'center', borderRadius: 100 }}>
-                    <AntDesign name="delete" size={22} color="white" />
+                }} style={{ backgroundColor: 'red', marginLeft: wp(4), width: wp(12), height: wp(12), alignItems: 'center', justifyContent: 'center', borderRadius: hp(50) }}>
+                    <AntDesign name="delete" size={hp(2.8)} color="white" />
                 </TouchableOpacity>
             </View>
         )
@@ -66,13 +68,13 @@ export default function SubTask({ item, index, onComponentOpen, onEdit, onDelete
                         }
                     ]
                 )
-            }} style={{ borderRadius: 15, elevation: 3, marginBottom: 10, marginHorizontal: 3, paddingVertical: 12, shadowColor: 'black', backgroundColor: 'white', paddingHorizontal: 10, marginTop: 2 }}>
+            }} style={{ borderRadius: hp(2), elevation: hp(0.5), marginBottom: hp(1), marginHorizontal: wp(1), paddingVertical: hp(1.8), shadowColor: 'black', backgroundColor: 'white', paddingHorizontal: wp(4), marginTop: hp(1) }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ width: '90%' }}>
-                        <Text style={{ color: '#6237a0', fontWeight: 500, fontSize: 15 }}>{item.title}</Text>
-                        <Text style={{ marginTop: 5, color: 'gray', fontSize: 13, width: "95%" }}>{item.description}</Text>
+                    <View style={{ width: wp(62) }}>
+                        <Text style={{ color: '#6237a0', fontWeight: 500, fontSize: hp(1.8) }}>{item.title}</Text>
+                        <Text style={{ marginTop: hp(0.5), color: 'gray', fontSize: hp(1.6) }}>{item.description}</Text>
                     </View>
-                    {item.status ? <MaterialIcons name="task-alt" size={24} color="#07da63" /> : <Entypo name="circle-with-cross" size={24} color="red" />}
+                    {item.status ? <MaterialIcons name="task-alt" size={hp(3)} color="#07da63" /> : <Entypo name="circle-with-cross" size={hp(3)} color="red" />}
                 </View>
             </TouchableOpacity>
         </Swipeable>

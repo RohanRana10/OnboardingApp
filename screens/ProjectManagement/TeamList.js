@@ -1,7 +1,6 @@
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View,StatusBar } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
-// import { StatusBar } from 'expo-status-bar';
 import { useNavigation } from '@react-navigation/native';
 
 export default function TeamList() {

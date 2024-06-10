@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View, StatusBar, Image } from 'react-native'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BASE_PROJECT_URL } from '../../utils/APIConstants';
@@ -7,6 +7,7 @@ import { UserContext } from '../../context/userContext';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useToast } from 'react-native-toast-notifications';
 import axios from 'axios';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default function PendingTasks() {
     const context = useContext(UserContext);
@@ -14,69 +15,6 @@ export default function PendingTasks() {
     const navigation = useNavigation();
     const toast = useToast();
     const [loading, setLoading] = useState(false);
-
-    let samplePendingTasks = [
-        {
-            'projectId': 1001,
-            'projectName': 'Project A',
-            "taskTitle": 'write unit tests for feature X',
-            "deadline": '2024-06-12'
-        },
-        {
-            'projectId': 1002,
-            'projectName': 'Project B',
-            "taskTitle": 'debug issue in backend code',
-            "deadline": '2025-06-04'
-        },
-        {
-            'projectId': 1003,
-            'projectName': 'Project C',
-            "taskTitle": 'design user interface for new feature',
-            "deadline": '28/02/2025'
-        },
-        {
-            'projectId': 1004,
-            'projectName': 'Project D',
-            "taskTitle": 'optimize database queries',
-            "deadline": '10/03/2025'
-        },
-        {
-            'projectId': 1005,
-            'projectName': 'Project E',
-            "taskTitle": 'implement authentication system',
-            "deadline": '20/04/2025'
-        },
-        {
-            'projectId': 1006,
-            'projectName': 'Project F',
-            "taskTitle": 'write documentation for API endpoints',
-            "deadline": '05/05/2025'
-        },
-        {
-            'projectId': 1007,
-            'projectName': 'Project G',
-            "taskTitle": 'conduct code review for pull requests',
-            "deadline": '30/06/2025'
-        },
-        {
-            'projectId': 1008,
-            'projectName': 'Project H',
-            "taskTitle": 'test performance of application',
-            "deadline": '25/07/2025'
-        },
-        {
-            'projectId': 1009,
-            'projectName': 'Project I',
-            "taskTitle": 'update dependencies to latest versions',
-            "deadline": '15/08/2025'
-        },
-        {
-            'projectId': 1010,
-            'projectName': 'Project J',
-            "taskTitle": 'create user stories for upcoming sprint',
-            "deadline": '10/09/2025'
-        }
-    ];
 
     const [pendingTasks, setPendingTasks] = useState([]);
 
@@ -129,30 +67,30 @@ export default function PendingTasks() {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar backgroundColor={"#fff"} barStyle={'dark-content'} />
-            {loading ? (<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            {loading ? (<View style={{ height: hp(95), justifyContent: 'center', alignItems: 'center' }}>
                 <Image style={{
-                    width: 100,
-                    height: 100,
+                    width: wp(20),
+                    height: wp(20),
                 }} source={require('../../assets/New.gif')} />
             </View>) : (<View>
                 <Text style={styles.heading}>Pending Tasks</Text>
-                {(pendingTasks == null || pendingTasks?.length == 0) ? (<View style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontWeight: 400 }}>No Pending Tasks found!</Text>
-                    <Image source={require('../../assets/Images/Logo.png')} style={{ marginTop: 12, width: 70, height: 70 }} />
+                {(pendingTasks == null || pendingTasks?.length == 0) ? (<View style={{ width: wp(100), height: hp(90), alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontWeight: 400, fontSize: hp(1.8) }}>No Pending Tasks found!</Text>
+                    <Image source={require('../../assets/Images/Logo.png')} style={{ marginTop: hp(1.5), width: wp(18), height: wp(18) }} />
                 </View>) : (
-                    <View style={{ paddingTop: 5, paddingHorizontal: 8, marginBottom: 18 }}>
+                    <View style={{ paddingTop: hp(1), paddingHorizontal: wp(2) ,height: hp(85), backgroundColor: '#fff'}}>
                         <FlatList
-                            contentContainerStyle={{}}
+                            contentContainerStyle={{ paddingBottom: hp(5),}}
                             data={pendingTasks}
-                            style={{ flexGrow: 1 }}
+                            // style={{ flexGrow: 1 }}
                             renderItem={({ item, index }) => (
-                                <TouchableOpacity onPress={() => getProject(item.taskId)} style={{ borderRadius: 15, elevation: 3, marginBottom: 10, marginHorizontal: 10, paddingVertical: 15, shadowColor: 'black', backgroundColor: 'white', paddingHorizontal: 15, marginTop: 2 }}>
-                                    <Text style={{ color: '#6237a0', fontWeight: '500', fontSize: 16, marginBottom: 10 }}>{item.title}</Text>
+                                <TouchableOpacity onPress={() => getProject(item.taskId)} style={{ borderRadius: hp(2), elevation: 3, marginBottom: hp(1), paddingVertical: hp(1.8), shadowColor: 'black', backgroundColor: 'white', paddingHorizontal: wp(4), marginTop: hp(0.6), marginHorizontal: wp(2) }}>
+                                    <Text style={{ color: '#6237a0', fontWeight: '500', fontSize: hp(2), marginBottom: hp(1) }}>{item.title}</Text>
                                     <View style={{}}>
-                                        <Text style={{ fontSize: 15, fontWeight: 300 }}><Text style={{ color: 'gray' }}>Project:</Text> {item.projectTitle}</Text>
-                                        <View style={{ flexDirection: 'row', marginTop: 10 }}>
-                                            <MaterialCommunityIcons name="calendar-clock-outline" size={20} color="red" />
-                                            <Text style={{ marginLeft: 6, fontWeight: 'bold' }}>{item.endDate}</Text>
+                                        <Text style={{ fontSize: hp(2), fontWeight: 300 }}><Text style={{ color: 'gray' }}>Project:</Text> {item.projectTitle}</Text>
+                                        <View style={{ flexDirection: 'row', marginTop: hp(1) }}>
+                                            <MaterialCommunityIcons name="calendar-clock-outline" size={hp(2.8)} color="red" />
+                                            <Text style={{ marginLeft: wp(1.5), fontWeight: 'bold' , fontSize: hp(1.6)}}>{item.endDate}</Text>
                                         </View>
                                     </View>
                                 </TouchableOpacity>
@@ -167,15 +105,15 @@ export default function PendingTasks() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        paddingVertical: 20,
-        // paddingHorizontal: 18,
+        height: hp(95),
+        paddingVertical: hp(2),
         backgroundColor: '#fff'
     },
     heading: {
         color: '#6237A0',
-        fontSize: 24,
+        fontSize: hp(3),
         fontWeight: 'bold',
-        paddingHorizontal: 18,
+        paddingHorizontal: wp(4),
+        height: hp(5),
     },
 })

@@ -1,13 +1,13 @@
 import { View, Text, StyleSheet, StatusBar, Image, Keyboard, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import COLORS from '../constants/colors'
-import Button from './Button';
 import { Ionicons } from '@expo/vector-icons'
 import { useToast } from 'react-native-toast-notifications';
 import OTPTextInput from 'react-native-otp-textinput'
 import axios from 'axios';
-import { BASE_URL,BASE_AUTH_URL } from '../utils/APIConstants';
+import { BASE_AUTH_URL } from '../utils/APIConstants';
 import { TextInput } from 'react-native-paper';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+
 
 export default function ForgotPassword({ navigation }) {
     let otpInput = useRef(null);
@@ -401,13 +401,11 @@ export default function ForgotPassword({ navigation }) {
         <View style={styles.container}>
             <StatusBar backgroundColor={"#fff"} barStyle={"dark-content"} />
             <Image resizeMode='center' style={styles.logo} source={require('../assets/LogoBlack.png')}></Image>
-            {/* <Text style={styles.email}>rohan.rana@resotechsolutions.com</Text> */}
             {slide === 1 &&
                 <>
                     <Text style={styles.heading}>Forgot password</Text>
-                    <Text>Enter your registered Email Id in order to proceed with the password updation process</Text>
+                    <Text style={{fontSize: hp(1.8), width: wp(92)}}>Enter your registered Email Id in order to proceed with the password updation process</Text>
                     <View style={styles.formContainer}>
-                        {/* <TextInput style={styles.input} value={email} placeholder='Eg: john.doe@resotechsolutions.com' onChangeText={setEmail} /> */}
                         <TextInput
                             label="Email"
                             value={email}
@@ -417,24 +415,24 @@ export default function ForgotPassword({ navigation }) {
                                 borderRadius: 12,
                                 borderColor: errors.email ? 'red' : '#6237A0'
                             }}
-                            style={{ backgroundColor: 'white' }}
+                            style={{ backgroundColor: 'white', width: wp(92),alignSelf: 'center' }}
                             textColor='#28104E'
                             selectionColor='#6237a0'
                             activeOutlineColor="#6237a0"
                             onChangeText={text => setEmail(text)}
                         />
-                        {errors.email && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: 5 }}>Email is required!</Text></View>}
+                        {errors.email && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'black', marginLeft: wp(1) }}>Email is required!</Text></View>}
                     </View>
-                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 18, alignSelf: 'flex-end' }} /> :
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: hp(2), alignSelf: 'flex-end' }} /> :
                         <TouchableOpacity style={styles.loginButton} onPress={handleEmailSubmit}>
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Continue</Text>
+                            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: hp(1.8) }}>Continue</Text>
                         </TouchableOpacity>}
                 </>
             }
             {slide === 2 &&
                 <>
                     <Text style={styles.heading}>Enter OTP</Text>
-                    <Text>Please enter the OTP sent to provided Email Id. If not received, click Resend.</Text>
+                    <Text style={{fontSize: hp(1.8), width: wp(92)}}>Please enter the OTP sent to provided Email Id. If not received, click Resend.</Text>
                     <View style={styles.formContainer}>
                         {/* <TextInput style={{ ...styles.input, marginBottom: 5 }} editable={false} selectTextOnFocus={false} value={email} /> */}
                         <TextInput
@@ -447,7 +445,7 @@ export default function ForgotPassword({ navigation }) {
                                 borderRadius: 12,
                                 borderColor: '#6237A0'
                             }}
-                            style={{ backgroundColor: 'white' }}
+                            style={{ backgroundColor: 'white', width: wp(92), alignSelf: 'center' }}
                             textColor='#28104E'
                             selectionColor='#6237a0'
                             activeOutlineColor="#6237a0"
@@ -456,24 +454,23 @@ export default function ForgotPassword({ navigation }) {
                         {/* <TextInput style={styles.input} keyboardType='numeric' maxLength={6} value={otp} placeholder='Eg: 123456' onChangeText={setOtp} /> */}
 
 
-                        <OTPTextInput ref={e => (otpInput = e)} textInputStyle={{ marginBottom: 20, width: 40 }} handleTextChange={setOtp} inputCount={6} autoFocus={true} tintColor={'#6237a0'} />
+                        <OTPTextInput ref={e => (otpInput = e)} textInputStyle={{ marginBottom: hp(2.2), width: wp(12) }} handleTextChange={setOtp} inputCount={6} autoFocus={true} tintColor={'#6237a0'} />
 
 
-                        {errors.otp && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>Enter a valid OTP!</Text></View>}
-                        <View style={{ flexDirection: 'row' }}><Text>Not received? </Text>
+                        {errors.otp && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: wp(1) }}>Enter a valid OTP!</Text></View>}
+                        <View style={{ flexDirection: 'row' }}><Text style={{fontSize: hp(1.8)}}>Not received? </Text>
                             <TouchableOpacity onPress={resendOtp} disabled={isActive}>
-                                <Text style={{ color: isActive ? 'gray' : "#330066", fontWeight: '500' }}>Resend</Text>
+                                <Text style={{ color: isActive ? 'gray' : "#330066", fontWeight: '500' , fontSize: hp(1.8)}}>Resend</Text>
                             </TouchableOpacity>
-                            <Text> after {formatTime(timer)}</Text>
+                            <Text  style={{fontSize: hp(1.8)}}> after {formatTime(timer)}</Text>
                         </View>
                     </View>
-                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginTop: 12 }}>
-                        {/* <Button style={styles.backButton} filled title="Back" onPress={() => setSlide(slide - 1)} /> */}
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 1.5, alignSelf: 'flex-end' }} /> : <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginTop: hp(1.5) }}>
                         <TouchableOpacity style={styles.loginButton} onPress={() => navigation.replace('Login')}>
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Back</Text>
+                            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: hp(1.8) }}>Back</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={{ ...styles.loginButton, marginLeft: 10 }} onPress={handleOtpSubmit}>
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Submit</Text>
+                        <TouchableOpacity style={{ ...styles.loginButton, marginLeft: wp(3) }} onPress={handleOtpSubmit}>
+                            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: hp(1.8) }}>Submit</Text>
                         </TouchableOpacity>
                         {/* <Button style={styles.submitButton} filled title="Submit" onPress={handleOtpSubmit} /> */}
                     </View>}
@@ -483,7 +480,7 @@ export default function ForgotPassword({ navigation }) {
             {slide === 3 &&
                 <>
                     <Text style={styles.heading}>Reset your password</Text>
-                    <Text style={{ alignSelf: 'flex-start' }}>Please enter and confirm your new password</Text>
+                    <Text style={{ alignSelf: 'flex-start', fontSize: hp(1.5) }}>Please enter and confirm your new password</Text>
                     <View style={styles.formContainer}>
                         {/* <TextInput style={styles.input} editable={false} selectTextOnFocus={false} value={email} /> */}
                         <TextInput
@@ -496,19 +493,11 @@ export default function ForgotPassword({ navigation }) {
                                 borderRadius: 12,
                                 borderColor: '#6237A0'
                             }}
-                            style={{ backgroundColor: 'white' }}
+                            style={{ backgroundColor: 'white', width: wp(92), alignSelf: 'center' }}
                             textColor='#28104E'
                             selectionColor='#6237a0'
                             activeOutlineColor="#6237a0"
-                        // onChangeText={text => setEmail(text)}
                         />
-                        {/* <View style={styles.newPasswordContainer}> */}
-                        {/* <TextInput style={styles.inputPassword} secureTextEntry={!isPasswordVisible} value={newPassword} placeholder='New Password' onChangeText={setNewPassword} />
-                            <View style={styles.eyeContainer}>
-                                <TouchableOpacity onPress={togglePasswordVisibility}>
-                                    <Ionicons size={20} name={isPasswordVisible ? 'eye-off' : 'eye'} color='#061621' />
-                                </TouchableOpacity>
-                            </View> */}
                         <TextInput
                             label="New Password"
                             value={newPassword}
@@ -518,15 +507,13 @@ export default function ForgotPassword({ navigation }) {
                                 borderRadius: 12,
                                 borderColor: errors.email ? 'red' : '#6237A0'
                             }}
-                            style={{ backgroundColor: 'white', marginTop: 12 }}
+                            style={{ backgroundColor: 'white', marginTop: hp(1.5), width: wp(92), alignSelf: 'center' }}
                             textColor='#28104E'
                             selectionColor='#6237a0'
                             activeOutlineColor="#6237a0"
                             onChangeText={text => setNewPassword(text)}
                         />
-                        {/* </View> */}
-                        {/* {errors.newPassword ? <Text style={styles.errorText}>{errors.newPassword}</Text> : null} */}
-                        {errors.newPassword && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>{errors.newPassword}</Text></View>}
+                        {errors.newPassword && <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: wp(1), fontSize: hp(1.5) }}>{errors.newPassword}</Text></View>}
                         {/* <TextInput style={styles.input} value={confirmPassword} secureTextEntry={true} placeholder='Confirm Password' onChangeText={setConfirmPassword} /> */}
                         <TextInput
                             label="Confirm Password"
@@ -537,16 +524,16 @@ export default function ForgotPassword({ navigation }) {
                                 borderRadius: 12,
                                 borderColor: errors.email ? 'red' : '#6237A0'
                             }}
-                            style={{ backgroundColor: 'white', marginTop: 12 }}
+                            style={{ backgroundColor: 'white', marginTop: hp(1.5), width: wp(92), alignSelf: 'center' }}
                             textColor='#28104E'
                             selectionColor='#6237a0'
                             activeOutlineColor="#6237a0"
                             onChangeText={text => setConfirmPassword(text)}
                         />
-                        {errors.confirmPassword ? <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>{errors.confirmPassword}</Text></View> : null}{errors.passwordsSame ? <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: 5 }}>{errors.passwordsSame}</Text></View> : null}
+                        {errors.confirmPassword ? <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: wp(1) }}>{errors.confirmPassword}</Text></View> : null}{errors.passwordsSame ? <View style={{ flexDirection: 'row', alignItems: 'center' }}><Ionicons name="warning" size={24} color="red" /><Text style={{ color: 'red', marginLeft: wp(1), fontSize: hp(1.5) }}>{errors.passwordsSame}</Text></View> : null}
                     </View>
-                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: 12, alignSelf: 'flex-end' }} /> : <TouchableOpacity style={styles.loginButton} onPress={handlePasswordSubmit}>
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Submit</Text>
+                    {loading ? <ActivityIndicator color={'#6237a0'} size={40} style={{ marginTop: hp(1.5), alignSelf: 'flex-end' }} /> : <TouchableOpacity style={styles.loginButton} onPress={handlePasswordSubmit}>
+                        <Text style={{ color: 'white', fontWeight: 'bold' , fontSize: hp(1.5)}}>Submit</Text>
                     </TouchableOpacity>}
                 </>
             }
@@ -561,19 +548,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20
+        padding: wp(4)
     },
     heading: {
         alignSelf: 'flex-start',
-        fontSize: 24,
+        fontSize: hp(3),
         color: "#6237a0",
-        marginBottom: 10
+        marginBottom: hp(1)
     },
     logo: {
-        height: 90,
-        width: 180,
+        width: wp(45),
+        height: hp(6),
         alignSelf: 'flex-start',
         // marginVertical: 8
+        marginBottom: hp(1.5)
     },
     email: {
         alignSelf: 'flex-start',
@@ -604,8 +592,8 @@ const styles = StyleSheet.create({
     },
     formContainer: {
         // backgroundColor: 'cyan',
-        width: '100%',
-        marginVertical: 15
+        width: wp(94),
+        marginVertical: hp(1.5)
     },
     backButton: {
         alignSelf: 'flex-end',
@@ -669,13 +657,12 @@ const styles = StyleSheet.create({
         borderColor: "#03DAC6",
     },
     loginButton: {
-        width: 100,
+        width: wp(25),
         alignSelf: 'flex-end',
         backgroundColor: '#6237A0',
-        height: 50,
+        height: hp(6),
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 0,
         borderRadius: 12
     }
 })
